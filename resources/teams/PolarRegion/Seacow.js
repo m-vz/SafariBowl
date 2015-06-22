@@ -15,154 +15,215 @@ with(imports) {
 
 	function setDescriptionLines(player, descriptionLines) {
 		var lines = [
-			"Cheater.",
-			"Cannot pick up the ball.",
-			"Whirls across the field with another monkey",
-			"blocking everyone in his path."
+			"High chance of hurting enemies when blocking.",
+			"Can throw players with the attribute 'throwable',",
+			"but sometimes crushes them accidentally.",
+			"Heals faster than other players.",
+			"Stupid, so sometimes she just forgets",
+			"what she was about to do. This can be",
+			"helped by setting other players to her side."
 		];
 		return Java.to(lines, Java.type("java.lang.String[]"));
 	}
-		
-	var cheatedKey = "cheated";
-	var noHandsString = "Sorry, but I have no hands left!";
-	var ONLY_TORNADO = "SRY, BUT I'M SO HYPERACTIVE, THAT I CAN ONLY USE MY SPECIAL ABILITY TORNADO";
-	var API_FIELD_FUNCTION_NAME = "apiField";
-	var ENEMY_DOWN = "YOUR ENEMY IS ";
+
+	var checkForStupidKey = "checkForStupid";
+	var stupidKey = "isStupid";
+	var stupidString = "HHNG";
 	var YOU_SUCK = "YOU ARE ";
-	var FAILD_PLAYER_IS_NOT_IN_A_GOOD_CONDITION = "PLAYER IS NOT IN A GOOD CONDITION";
 	var SBProtocolCommand = Java.type("network.SBProtocolCommand");
 	var SBProtocolMessage = Java.type("network.SBProtocolMessage");
 	
-	function apiField(player, x, y, userIndex){
-		var directionThrow = player.getMatch().d3.throwDie();
-		var newX = x;
-		var newY = y;
-		if(x == player.getPos().x){
-			newX = directionThrow - 2 + x;
-		}else if(y == player.getPos().y){
-			newY = directionThrow - 2 + y;
+	var ENEMY_DOWN = "YOUR ENEMY IS ";
+	var YOU_SUCK = "YOUR ARE ";
+	var FAILD_NO_THROWABLE_PLAYER_NEXT_TO_ME = "NO THROWABLE PLAYER NEXT TO ME";
+	var FAILD_CLUMSY = "THE SEACOW WAS TOO CLUMSY, ROLLED ON THE TEAMMATE AND CRUMPLED HIM TO DEATH";
+	var throwableKey = "throwable";
+	var API_CHOICE_FUNCTION_NAME = "apiChoice";
+	var API_AIM_FUNCTION_NAME = "apiAim";
+	function apiChoice(player, teamIndex, playerToBeThrownIndex, userIndex){
+		var playerToBeThrown = player.getTeam().getPlayers().get(playerToBeThrownIndex);
+		player.getMatch().setCurrentDefenderWaitingForAnswer(playerToBeThrown);
+		var playerIndex = player.findPlayerIndex();
+		if(!(player.getMatch().d6.throwDie() == 1 && player.getMatch().d6.throwDie() == 1)){
+			var parameterArray = [];
+			parameterArray[0] = SBProtocolMessage.EVENT_API_AIM;
+			parameterArray[1] = API_AIM_FUNCTION_NAME;
+			parameterArray[2] = playerIndex;
+			parameterArray[3] = 8; //MaxRange
+			player.getMatch().sendMessage(player.getMatch().getUser(userIndex), SBProtocolCommand.EVENT, parameterArray);
+		}else{
+			var PlayerCondition = Java.type("gameLogic.PlayerCondition");
+			var Pitch = Java.type("gameLogic.Pitch");
+			playerToBeThrown.invokeSetPlayerCondition(PlayerCondition.DEAD);
+			playerToBeThrown.invokeSetPosition(Pitch.THE_VOID);
+			player.sendMessageShowMe(player.toString(), "Oups, I just squeezed the poor puffin to death.");
+			var parameterArray = [];
+			parameterArray[0] = FAILD_CLUMSY;
+			player.getMatch().sendMessage(player.getMatch().getUser(userIndex), SBProtocolCommand.EVENT, parameterArray);
+			player.getMatch().setGamePhase(3);
 		}
-		if(player.getMatch().getPitch().isOnField(newX, newY)){
-			if(player.getMatch().getPitch().getFields()[newX][newY].getPlayer() == null){
-				player.invokeSetPosition(newX, newY);
-				if(player.getMatch().getPitch().getBallPos().x == newX && player.getMatch().getPitch().getBallPos().y == newY){
+		player.invokeSetRemainingBe(0);
+	}
+	function apiAim(player, destX, destY, userIndex){
+		var x = destX;
+		var y = destY;
+		for(var i = 0; i < 3; i++){
+			scatterRoll = player.getMatch().scatter();
+			x += scatterRoll.x;
+			y += scatterRoll.y;
+		}
+		if(player.getMatch().getPitch().isOnField(x, y)){
+			playerLanding(player.getMatch().getCurrentDefenderWaitingForAnswer(), userIndex, x, y, false);
+		}else{
+			player.getRule(2).crowdBeatsUpPlayer(player.getMatch().getCurrentDefenderWaitingForAnswer());
+		}
+		player.getMatch().setGamePhase(3);
+	}
+	function playerLanding(player, userIndex, x, y, willFailForSure){
+		if(player.getMatch().getPitch().getFields()[x][y].getPlayer() == null){
+			player.invokeSetPosition(x, y);
+			if(willFailForSure){
+				var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
+				player.getRule(1).playerDown(message, player, YOU_SUCK);
+				if(player.getMatch().getPitch().getBallPos() == player.getPos()){
 					player.getRule(4).scatterBallAround(userIndex);
 				}
-				endMove(player);
 			}else{
-				var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");		
-				blockFromMove(player, message, player.getMatch().getPitch().getFields()[newX][newY].getPlayer());
-			}
-		}else{
-			player.getRule(2).crowdBeatsUpPlayer(player);
-			player.getMatch().setGamePhase(3);
-		}
-	}
-	function endMove(player){
-		player.getMatch().setGamePhase(5);
-		player.invokeCountDownRemainingBe(1);
-		var PlayerCondition = Java.type("gameLogic.PlayerCondition");
-		if(player.invokeGetRemainingBe() > 0 && player.invokeGetPlayerCondition() == PlayerCondition.FINE){
-			var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
-			player.getSpecialRule(0).apply(message);
-		}else{
-			player.getMatch().setGamePhase(3);
-		}
-	}
-	function playerDownInAttack(message, p, s){
-		armorRoll = p.getMatch().d6.throwDie() + p.getMatch().d6.throwDie();
-		s = injuryRollInAttack(p, 0);
-		p.getRule(1).sendMessageShowMe(p.toString(), "I am " + s + "!");
-		p.getRule(1).returnSuccessMessage(message, s);
-		var teamIndex = -1;
-		if(p.getTeam().equals(p.getMatch().getTeam(0))){
-			teamIndex = 0;
-		}else if(p.getTeam().equals(p.getMatch().getTeam(1))){
-			teamIndex = 1;
-		}else{
-			return;
-		}
-		p.getMatch().endTurn(teamIndex);
-	}
-	function injuryRollInAttack(player, modifier){
-		s = "";
-		injuryRoll = player.getMatch().d6.throwDie() + player.getMatch().d6.throwDie() + 1;
-		var PlayerCondition = Java.type("gameLogic.PlayerCondition");
-		if(injuryRoll + modifier < 10){
-			player.invokeSetPlayerCondition(PlayerCondition.KO);
-			s += "KO";
-		}else{
-			casultyRoll = player.getMatch().d6.throwDie() * 10 + player.getMatch().d8.throwDie(); 
-			if(casultyRoll < 61){
-				player.invokeSetPlayerCondition(PlayerCondition.INJURED);
-				s += "INJURED";
-			}else{
-				player.invokeSetPlayerCondition(PlayerCondition.DEAD);
-				s += "DEAD";
-			}
-			player.getMatch().addCasualty(player);
-		}
-		player.invokeClearPosition();
-		return s;
-	}
-	function blockFromMove(player, message, defender){
-		player.setSpecialStat(cheatedKey, "true");
-		var PlayerCondition = Java.type("gameLogic.PlayerCondition");
-		playerIsFine = (player.getMatch().getPitch().isOnField(player.getPos()) && player.invokeGetPlayerCondition() == PlayerCondition.FINE);
-		playerHasRemainingBe = (player.invokeGetRemainingBe() > 0);
-		playerWantsToBlitz = (player.invokeGetRemainingBe() != player.invokeGetBe());
-		if(playerIsFine && playerHasRemainingBe){
-			// Set fields for defender and message so they are available in attackerDown() and bothDown()
-			this.message = message;
-			if (player.getMatch().getPitch().isAdjacent(player.getPosition(), defender.getPosition())){
-				if(defender.invokeGetPlayerCondition() == PlayerCondition.FINE){
-					player.getRule(1).throwDice(message, defender);
-				}else{
-					player.getRule(1).beatHim(defender, message, true);
-					player.getRule(2).apply(message, defender, defender.getPosition(), player.getTeam().getCoach().getUID(), player, defender.getPos());
+				var enemyIndex = -1;
+				if(userIndex == 0){
+					enemyIndex = 1;
+				}else if(userIndex == 1){
+					enemyIndex = 0;
 				}
-			} else player.getRule(1).returnFailureMessage(message, SBProtocolMessage.FAILD_BLOCKING_NOT_POSSIBLE);
-		} else player.getRule(1).returnFailureMessage(message, SBProtocolMessage.FAILD_PLAYER_CANNOT_TAKE_ACTION);
-	}
-	function followWithoutQuestion(player, defenderField, message){       	
-		player.invokeSetPosition(defenderField);
-		player.getRule(2).returnSuccessMessage(message, SBProtocolMessage.WORKD_FOLLOWED);
-		endMove(player);
+				var mod = -(player.getMatch().getTeam(enemyIndex).getTacklezones(x, y));
+				if(!(player.getRule(0).geTest(mod))){
+					var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
+					player.getRule(1).playerDown(message, player, YOU_SUCK);
+					if(player.getMatch().getPitch().getBallPos() == player.getPos()){
+						player.getRule(4).scatterBallAround(userIndex);
+					}
+				}
+				if(!(player.getRule(0).geTest(mod))){
+					if(player.getMatch().getPitch().getBallPos() == player.getPos()){
+						player.getRule(4).scatterBallAround(userIndex);
+					}
+				}
+			}
+		}else{
+			var PlayerCondition = Java.type("gameLogic.PlayerCondition");
+			var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
+			playerCondition = player.getMatch().getPitch().getFields()[x][y].getPlayer().invokeGetPlayerCondition();
+			defender = player.getMatch().getPitch().getFields()[x][y].getPlayer();
+			player.getMatch().getPitch().getFields()[x][y].getPlayer().getRule(1).playerDown(message, player.getMatch().getPitch().getFields()[x][y].getPlayer(), ENEMY_DOWN);
+			if(playerCondition.equals(PlayerCondition.STUNNED) && defender.invokeGetPlayerCondition().equals(PlayerCondition.PRONE)){
+				defender.invokeSetPlayerCondition(PlayerCondition.STUNNED);
+			}
+			var scatterRoll = player.getMatch().scatter();
+			var newX = x + scatterRoll.x;
+			var newY = y + scatterRoll.y;
+			if(player.getMatch().getPitch().isOnField(newX, newY)){
+				playerLanding(player, userIndex, newX, newY, true);
+			}else{
+				player.getRule(2).crowdBeatsUpPlayer(player);
+			}
+		}
 	}
 	
+	function checkForStupid(player){
+		var difficulty = 4;
+		if(player.getTeam().getTacklezones(player.getPos()) > 0){
+			difficulty = 2;
+		}
+		if(player.getSpecialStat(stupidKey) == "false"){
+			if(player.getTeam().getMatch().d6.throwDie() < difficulty){
+				player.setSpecialStat(stupidKey, "true");
+				player.updateActiveTackleZone();
+			}
+		}
+	}
+
     function setPrice(player, price) {
-        return 70000;
+        return 110000;
     }
     function setGe(player, ge) {
-        return 3;
+        return 1;
     }
     function setRs(player, rs) {
-        return 7;
+        return 9;
     }
     function setSt(player, st) {
-        return 7;
+        return 5;
     }
     function setBe(player, be) {
-        return 3;
+        return 4;
     }
     function adjustMaxHeadcount(player, maxHeadcount) {
         return 1;
     }
     function setRules(player, ruleMove, ruleBlock, rulePush, ruleThrow, ruleCatch) {
-    	player.addSpecialStat(cheatedKey, "false");
     	var rulesArray = [ruleMove, ruleBlock, rulePush, ruleThrow, ruleCatch];
- 
-        var RuleBlock = Java.type("gameLogic.rules.RuleBlock");
-        var RuleBlockStuntyCheaterTornado = Java.extend(RuleBlock);
-        var ruleBlockStuntyCheaterTornado = new RuleBlockStuntyCheaterTornado(rulesArray[1].getActor()) {
-        	apply: function(message, defender){
-        		var _super_ = Java.super(ruleBlockStuntyCheaterTornado);
-        		_super_.sendMessageShowMe(player.getTeam().getCoach(), player.toString(), "I can only use my tornado!");
-        		_super_.returnFailureMessage(message, ONLY_TORNADO);
-	    	},
-        	injuryRoll: function(modifier){
-	    		s = "";
-        		injuryRoll = player.getMatch().d6.throwDie() + player.getMatch().d6.throwDie() + 1;
+    	player.addSpecialStat(stupidKey, "false");
+    	
+    	var RuleMove = Java.type("gameLogic.rules.RuleMove");
+    	var RuleMoveStupid = Java.extend(RuleMove);
+    	var ruleMoveStupid = new RuleMoveStupid(rulesArray[0].getActor()){
+    		apply: function(message, path){
+    			var _super_ = Java.super(ruleMoveStupid);
+    			var PlayerCondition = Java.type("gameLogic.PlayerCondition");
+    			var pathArray = Java.from(path);
+    			if(pathArray.length < 2){
+    				if(player.invokeGetPlayerCondition() == PlayerCondition.FINE){
+    					return;
+    				}
+    			}
+    			if(player.getTeam().getMovingPlayer() != player){
+    				player.invokeFunctionByName(checkForStupidKey, player);
+    			}
+    			if(player.getSpecialStat(stupidKey) == "true"){
+    				_super_.sendMessageShowMe(player.toString(), stupidString);
+    			}else{
+    				_super_.apply(message, path);
+    			}	
+    		}
+    	};
+    	rulesArray[0] = ruleMoveStupid;
+
+    	var RuleBlock = Java.type("gameLogic.rules.RuleBlock");
+    	var RuleBlockStupidMightyBlowRegeneration = Java.extend(RuleBlock);
+    	var ruleBlockStupidMightyBlowRegeneration = new RuleBlockStupidMightyBlowRegeneration(rulesArray[1].getActor()) {
+    		apply: function(message, defender){
+    			var _super_ = Java.super(ruleBlockStupidMightyBlowRegeneration);
+    			if(player.getTeam().getMovingPlayer() != player){
+    				player.invokeFunctionByName(checkForStupidKey, player);
+    			}
+    			if(player.getSpecialStat(stupidKey) == "true"){
+    				_super_.sendMessageShowMe(player.toString(), stupidString);
+    			}else{
+    				_super_.apply(message, defender);
+    			}
+    		},
+    		defenderDown: function(message, defender) {
+    			var PitchField = Java.type("gameLogic.PitchField");
+    			var defenderField = new PitchField(defender.getPos());
+    			defender.getRule(1).beingBlockedDefenderDown(message, player, defender, 1, 1);
+    			return true;
+    		},
+    		defenderStumbles: function(message, defender) {
+    			var PitchField = Java.type("gameLogic.PitchField");
+    			var defenderField = new PitchField(defender.getPos());
+    			defender.getRule(1).beingBlockedDefenderStumbles(message, player, defender, 1, 1);
+    			return true;
+    		},
+    		bothDown: function(message, defender) {
+    			var _super_ = Java.super(ruleBlockStupidMightyBlowRegeneration);
+    			defender.getRule(1).beingBlockedBothDown(message, 1, 1);
+    			_super_.playerDown(message, player, YOU_SUCK, 0, 0);
+				_super_.clearHighlightFields();
+    			return true;
+    		},
+    		injuryRoll: function(modifier){
+    			s = "";
+        		injuryRoll = player.getMatch().d6.throwDie() + player.getMatch().d6.throwDie();
         		var PlayerCondition = Java.type("gameLogic.PlayerCondition");
         		if(injuryRoll + modifier < 8){
         			player.invokeSetPlayerCondition(PlayerCondition.STUNNED);
@@ -182,113 +243,70 @@ with(imports) {
         				}
         				player.getMatch().addCasualty(player);
         			}
+        			if(player.getMatch().d6.throwDie() > 3){
+        				player.invokeSetPlayerCondition(PlayerCondition.FINE);
+        				s += ", BUT REGENERATED";
+        			}
         			player.invokeClearPosition();
         		}
         		return s;
-        	},
-        	beatHim: function(defender, message, playerWantsToBlitz){
-        		var PlayerCondition = Java.type("gameLogic.PlayerCondition");
-        		defenderCondition = defender.invokeGetPlayerCondition();
-        		defenderPosition = defender.getPosition();
-        		defender.getRule(1).playerDown(message, defender, ENEMY_DOWN);
-        		if(defenderCondition == PlayerCondition.STUNNED && defender.invokeGetPlayerCondition() == PlayerCondition.PRONE){
-        			defender.invokeSetPlayerCondition(PlayerCondition.STUNNED);
-        		}
-        		player.getRule(2).apply(message, defender, defenderPosition, player.getTeam().getCoach().getUID(), player, defenderPosition.getPos());
-        	},
-        	attackerDown: function(message) {
-        		playerDownInAttack(message, player, YOU_SUCK);
-        		player.getMatch().setGamePhase(3);
-        		player.getMatch().clearCurrentHighlitedFields();
-        		var _super_ = Java.super(ruleBlockStuntyCheaterTornado);
-				_super_.clearHighlightFields();
-        		return true;
-        	},
-        	bothDown: function(message, defender) {
-        		defender.getRule(1).beingBlockedBothDown(message, 0, 0);
-        		playerDownInAttack(message, player, YOU_SUCK);
-        		player.getMatch().clearCurrentHighlitedFields();
-        		var _super_ = Java.super(ruleBlockStuntyCheaterTornado);
-				_super_.clearHighlightFields();
-        		player.getMatch().setGamePhase(3);
-        		return true;
-        	}
-        };
-        rulesArray[1] = ruleBlockStuntyCheaterTornado;
-        
-        var RulePush = Java.type("gameLogic.rules.RulePush");
-        var RulePushTornado = Java.extend(RulePush);
-        var rulePushTornado = new RulePushTornado(rulesArray[2].getActor()){
-        	backUp: function(defenderField, message, playerBackingUp){
-        		var _super_ = Java.super(rulePushTornado);
-        		player.getRule(1).clearHighlightFields();
-        		followWithoutQuestion(player, defenderField, message);
-        	}
-        };
-        rulesArray[2] = rulePushTornado;
-        
-        var RuleMove = Java.type("gameLogic.rules.RuleMove");
-        var RuleMoveNoHandsTornado = Java.extend(RuleMove);
-        var ruleMoveNoHandsTornado = new RuleMoveNoHandsTornado(rulesArray[0].getActor()){
-        	apply: function(message, path){
-        		var _super_ = Java.super(ruleMoveNoHandsTornado);
-        		_super_.sendMessageShowMe(player.getTeam().getCoach(), player.toString(), "I can only use my tornado!");
-        		_super_.returnFailureMessage(message, ONLY_TORNADO);
-        	},        
-        	tryToPickUpBall: function(message, i, path){
-        		var _super_ = Java.super(ruleMoveNoHandsTornado);
-        		return _super_.faildToPickUpBall(message);
-        	}
-        };
-        rulesArray[0] = ruleMoveNoHandsTornado;
-        
-		var RuleThrow = Java.type("gameLogic.rules.RuleThrow");
-		var RuleThrowStuntyNoHands = Java.extend(RuleThrow);
-		var ruleThrowStuntyNoHands = new RuleThrowStuntyNoHands(rulesArray[3].getActor()){
-			findThrowModificator: function(problems, distance){
-				var _super_ = Java.super(ruleThrowStuntyNoHands);
-				_super_.findThrowModificator(problems - 1, distance);
-			},
-			apply: function(message, destination){
-				var _super_ = Java.super(ruleThrowStuntyNoHands);
-				_super_.sendMessageShowMe(player.getTeam().getCoach(), player.toString(), "I can only use my tornado!");
-				_super_.sendMessage(message, SBProtocolCommand.EVENT, SBProtocolMessage.EVENT_SHOW_ME, player.toString(), noHandsString);
-			}
-		};
-		rulesArray[3] = ruleThrowStuntyNoHands;
-        
-		var RuleCatch = Java.type("gameLogic.rules.RuleCatch");
-		var RuleCatchNoHands = Java.extend(RuleCatch);
-		var ruleCatchNoHands = new RuleCatchNoHands(rulesArray[4].getActor()){
-			apply: function(successfulThrow){
-		    	var actingUserIndex;
-				if(player.getTeam() == player.getMatch().getTeam(0)){
-					actingUserIndex = 0;
-				}else if(player.getTeam() == player.getMatch().getTeam(1)){
-					actingUserIndex = 1;
-				}else{
-					return;
-				}
-				var _super_ = Java.super(ruleCatchNoHands);
-				_super_.scatterBallAround(actingUserIndex);
-			},
-			giveBall: function(message){
-				var _super_ = Java.super(ruleCatchNoHands);
-				_super_.sendMessageShowMe(player.getTeam().getCoach(), player.toString(), noHandsString);
-				_super_.sendMessage(message, SBProtocolCommand.EVENT, noHandsString);
-				_super_.sendMessage(message, SBProtocolCommand.EVENT, SBProtocolMessage.EVENT_GIVE_THE_BALL_TO_SOMEONE);
-			}
-		};
-		rulesArray[4] = ruleCatchNoHands;
+    		}
+    	};
+    	rulesArray[1] = ruleBlockStupidMightyBlowRegeneration;
+    	
+    	var RuleThrow = Java.type("gameLogic.rules.RuleThrow");
+    	var RuleThrowStupid = Java.extend(RuleThrow);
+    	var ruleThrowStupid = new RuleThrowStupid(rulesArray[3].getActor()){
+    		apply: function(message, destination){
+    			var _super_ = Java.super(ruleThrowStupid);
+    			if(player.getTeam().getMovingPlayer() != player){
+    				player.invokeFunctionByName(checkForStupidKey, player);
+    			}
+    			if(player.getSpecialStat(stupidKey) == "true"){
+    				_super_.sendMessageShowMe(player.toString(), stupidString);
+    			}else{	
+    				_super_.apply(message, destination);
+    			}
+    		}
+    	};
+    	rulesArray[3] = ruleThrowStupid;
 
-        var rulesToReturn = Java.to(rulesArray, Java.type("gameLogic.rules.Rule[]"));
+    	var RuleCatch = Java.type("gameLogic.rules.RuleCatch");
+    	var RuleCatchStupid = Java.extend(RuleCatch);
+    	var ruleCatchStupid = new RuleCatchStupid(rulesArray[4].getActor()){
+    		apply: function(successfulThrow){
+    			var _super_ = Java.super(ruleCatchStupid);
+    			if(player.getSpecialStat(stupidKey) == "true"){
+    				var actingUserIndex = -1;
+    				if(player.getTeam() == player.getMatch().getTeam(0)){
+    					actingUserIndex = 0;
+    				}else if(player.getTeam() == player.getMatch().getTeam(1)){
+    					actingUserIndex = 1;
+    				}else{
+    					return;
+    				}
+    				_super_.scatterBallAround(actingUserIndex);
+    				_super_.sendMessageShowMe(player.toString(), stupidString);
+    			}else{
+    				_super_.apply(successfulThrow);
+    			}
+    		}
+    	};
+    	rulesArray[4] = ruleCatchStupid;
+
+    	var rulesToReturn = Java.to(rulesArray, Java.type("gameLogic.rules.Rule[]"));
     	return rulesToReturn;
     }
     function eventHappened(player, eventString){
     	var SBProtocolMessage = Java.type("network.SBProtocolMessage");
-    	if(eventString == SBProtocolMessage.EVENT_SETUP_YOUR_TEAM){
-    		if(player.getSpecialStat(cheatedKey).equals("true")){
-    			player.invokeSetRedCard(true);
+    	if(eventString == SBProtocolMessage.EVENT_YOUR_TURN || eventString == SBProtocolMessage.EVENT_ENDED_TURN){
+    		var difficulty = 3;
+    		if(player.getTeam().getTacklezones(player.getPos()) > 0){
+    			difficulty = 1;
+    		}
+    		if(player.getTeam().getMatch().d6.throwDie() > difficulty){
+				player.setSpecialStat(stupidKey, "false");
+				player.updateActiveTackleZone();
     		}
     	}
     }
@@ -297,49 +315,79 @@ with(imports) {
     	var SpecialRule = Java.type("gameLogic.rules.SpecialRule");
 	    var specialRulesArray = [];
 	    
-	    var SpecialRuleTornado = Java.extend(SpecialRule);
-    	var specialRuleTornado = new SpecialRuleTornado(player, "Tornado") {
+	    var SpecialRuleThrowTeammate = Java.extend(SpecialRule);
+    	var specialRuleThrowTeammate = new SpecialRuleThrowTeammate(player, "Throw Teammate") {
     		apply: function(message){
-    			var _super_ = Java.super(specialRuleTornado);
-    			_super_.checkForMovingPlayer(player);
+    			var _super_ = Java.super(specialRuleThrowTeammate);
     			var PlayerCondition = Java.type("gameLogic.PlayerCondition");
-    			if(player.invokeGetPlayerCondition() != PlayerCondition.FINE){
-	    			_super_.returnFailureMessage(message, FAILD_PLAYER_IS_NOT_IN_A_GOOD_CONDITION);
+	    		if(player.invokeGetRemainingBe() == 0 && !(player.getTeam().getMovingPlayer() == player)){
+	    			_super_.returnFailureMessage(message, SBProtocolMessage.FAILD_YOU_ARE_EXHAUSTED);
 	    			return;
 	    		}
-    			if(player.invokeGetRemainingBe() > 0){
-    				var parameterArray = [];
-        			parameterArray[0] = SBProtocolMessage.EVENT_API_FIELD;
-        			parameterArray[1] = API_FIELD_FUNCTION_NAME;
-        			var fieldCounter = 0;
-        			for(var j = -1; j < 2; j++){
-        				for(var i = -1; i < 2; i++){
-        					var posX = player.getPos().x+i;
-        					var posY = player.getPos().y+j;
-        					if(player.getMatch().getPitch().isOnField(posX, posY)){
-        						if((i == 0 && j != 0) || (i != 0 && j == 0)){
-            						parameterArray[2*fieldCounter+2] = posX;
-            						parameterArray[2*fieldCounter+3] = posY;
-            						fieldCounter++;
-            					}
-        					}
-        				}
-        			}
-        			player.getMatch().setGamePhase(5);
-        			player.getMatch().setCurrentActorWaitingForAnswer(player);
-        			_super_.sendMessage(message, SBProtocolCommand.EVENT, parameterArray);
-    			}else{
-    				_super_.returnFailureMessage(message, SBProtocolMessage.FAILD_YOU_ARE_EXHAUSTED);
+	    		if(player.invokeGetPlayerCondition() != PlayerCondition.FINE){
+	    			_super_.returnFailureMessage(message, SBProtocolMessage.FAILD_PLAYER_IS_NOT_IN_A_GOOD_CONDITION);
+	    			return;
+	    		}
+    			_super_.checkForMovingPlayer(player);
+    			if(player.getTeam().getMovingPlayer() != player){
+    				player.invokeFunctionByName(checkForStupidKey, player);
+    			}
+    			if(player.getSpecialStat(stupidKey) == "true"){
+    				_super_.sendMessageShowMe(player.toString(), stupidString);
+    			}else{	
+	    			if(player.invokeGetRemainingBe() > 0){
+	    				var parameterArray = [];
+	        			parameterArray[0] = SBProtocolMessage.EVENT_API_CHOICE;
+	        			parameterArray[1] = API_CHOICE_FUNCTION_NAME;
+	        			var playerCounter = 0;
+	        			var PitchField = Java.type("gameLogic.PitchField");
+	        			var neighboursArray = Java.from(player.getMatch().getPitch().getNeighbours(player.getPos()));
+	        			for(var i = 0; i < neighboursArray.length; i++){
+	        				var field = neighboursArray[i];
+	        				if(field.getPlayer() != null){
+	        					if(player.getTeam() == field.getPlayer().getTeam() && field.getPlayer().invokeGetPlayerCondition().equals(PlayerCondition.FINE)){
+	        						var throwable = false;
+	        						throwable = field.getPlayer().getSpecialStat(throwableKey);
+	        						if(throwable == "true"){
+	        							var teamIndex = -1;
+	                					if(player.getTeam() == field.getPlayer().getMatch().getTeam(0)){
+	                						teamIndex = 0;
+	                					}else if(player.getTeam() == field.getPlayer().getMatch().getTeam(1)){
+	                						teamIndex = 1;
+	                					}
+	                					parameterArray[2*playerCounter+2] = teamIndex;
+	                					parameterArray[2*playerCounter+3] = field.getPlayer().getId() - 1;
+	                					playerCounter++;
+	        						}
+	        					}
+	        				}
+	        			}
+	        			if(playerCounter > 0){
+	        				player.getMatch().setGamePhase(5);
+	            			player.getMatch().setCurrentActorWaitingForAnswer(player);
+	            			_super_.sendMessage(message, SBProtocolCommand.EVENT, parameterArray);
+	        			}else{
+	        				_super_.sendMessageShowMe(player.getTeam().getCoach(), player.toString(), "I can't find any throwable players");
+	        				_super_.returnFailureMessage(message, FAILD_NO_THROWABLE_PLAYER_NEXT_TO_ME);
+	        			}
+	    			}else{
+	    				_super_.returnFailureMessage(message, SBProtocolMessage.FAILD_YOU_ARE_EXHAUSTED);
+	    			}
     			}
     		}
     	};
-	   	specialRulesArray[0] = specialRuleTornado;
+	   	specialRulesArray[0] = specialRuleThrowTeammate;
 	
 	   	var specialRulesToReturn = Java.to(specialRulesArray, Java.type("gameLogic.rules.SpecialRule[]"));
 	   	return specialRulesToReturn;
     }
     function setTackleZone(player, tackleZone) {}
-    function setActiveTackleZone(player, activeTackleZone) {}
+    function setActiveTackleZone(player, activeTackleZone) {
+    	var Vector = Java.type("java.util.Vector");
+    	if(player.getSpecialStat(stupidKey) == "true"){
+    		return new Vector();
+    	}
+    }
     function setPlayerCondition(player, playerCondition) {}
     function setPosition(player, position) {}
     function setIsHoldingBall(player, isHoldingBall) {}

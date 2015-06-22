@@ -193,7 +193,14 @@ public class Team {
 			"Hippie Flowers",
 			"Hanging Trees",
 			"Chocolate flips",
-			"Mourning Monkeys"};
+			"Mourning Monkeys",
+			"Running Clocks",
+			"Tea Sippers",
+			"Curly Ponies",
+			"Greedy Bookworms",
+			"Exam Crashers",
+			"Fancy Pencils",
+			"Russian Mafia"};
 		return names[(int)(Math.random()*names.length)];
 	}
 	

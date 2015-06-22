@@ -158,29 +158,12 @@ public class GameRenderer {
         // set players on bench
         getGameCanvas().getPlayersOnBench().removeAllElements();
         getGameCanvas().getPlayersOnOpponentBench().removeAllElements();
-        try {
-            for (Player player : getClient().getMatch().getTeam(getGameCanvas().getClientIndex()).getPlayers())
-                if (player.getPosition().equals(Pitch.THE_VOID)) // player is outside of field
-                    getGameCanvas().addPlayerOnBench(player);
-            for (Player player : getClient().getMatch().getTeam(getGameCanvas().getClientIndex() == 0 ? 1 : 0).getPlayers())
-                if (player.getPosition().equals(Pitch.THE_VOID)) // player is outside of field
-                    getGameCanvas().addPlayerOnOpponentBench(player);
-        } catch(NullPointerException e) { // trap for strange nullpointer
-            getClient().log(Level.SEVERE, "Send the following information to milan!");
-            if(getClient().getMatch() != null) {
-                if(getGameCanvas() != null) {
-                    if(getClient().getMatch().getTeam(getGameCanvas().getClientIndex()) != null) {
-                        if(getClient().getMatch().getTeam(getGameCanvas().getClientIndex()).getPlayers() != null) {
-                            if(getClient().getMatch().getTeam(getGameCanvas().getClientIndex()).getPlayers().get(0) != null) {
-                                if(getClient().getMatch().getTeam(getGameCanvas().getClientIndex()).getPlayers().get(0).getPosition() != null) {
-                                    getClient().log(Level.SEVERE, "strange");
-                                } else getClient().log(Level.SEVERE, "position of player at 0 is null");
-                            } else getClient().log(Level.SEVERE, "player at 0 is null");
-                        } else getClient().log(Level.SEVERE, "players are null");
-                    } else getClient().log(Level.SEVERE, "team is null");
-                } else getClient().log(Level.SEVERE, "game canvas is null");
-            } else getClient().log(Level.SEVERE, "match is null");
-        }
+        for (Player player : getClient().getMatch().getTeam(getGameCanvas().getClientIndex()).getPlayers())
+            if (player.getPosition().equals(Pitch.THE_VOID)) // player is outside of field
+                getGameCanvas().addPlayerOnBench(player);
+        for (Player player : getClient().getMatch().getTeam(getGameCanvas().getClientIndex() == 0 ? 1 : 0).getPlayers())
+            if (player.getPosition().equals(Pitch.THE_VOID)) // player is outside of field
+                getGameCanvas().addPlayerOnOpponentBench(player);
 
         // draw players on own bench
         for (int i = 1; i <= getGameCanvas().getPlayersOnBench().size(); i++) {

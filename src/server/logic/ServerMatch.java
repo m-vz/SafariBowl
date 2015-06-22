@@ -844,6 +844,7 @@ public class ServerMatch extends GameController {
 		}
 		try{
 			getPitch().adjustBallPos(new Vector2d(-1, -1));
+			sendBallPos();
 			return ((RuleCatch)getTeam(actingUserIndex).getPlayers().get(playerIndex).getRule(4)).giveBall(message);
 		}catch(IndexOutOfBoundsException e){
 			returnFailureMessage(message, SBProtocolMessage.FAILD_PLAYER_DOESNT_EXIST);

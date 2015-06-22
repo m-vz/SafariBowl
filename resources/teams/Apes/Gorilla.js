@@ -55,6 +55,7 @@ with(imports) {
 			var Pitch = Java.type("gameLogic.Pitch");
 			playerToBeThrown.invokeSetPlayerCondition(PlayerCondition.DEAD);
 			playerToBeThrown.invokeSetPosition(Pitch.THE_VOID);
+			player.sendMessageShowMe(player.toString(), "Oups, I just squeezed the poor blond capuchin to death.");
 			var parameterArray = [];
 			parameterArray[0] = FAILD_CLUMSY;
 			player.getMatch().sendMessage(player.getMatch().getUser(userIndex), SBProtocolCommand.EVENT, parameterArray);
@@ -83,6 +84,9 @@ with(imports) {
 			if(willFailForSure){
 				var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
 				player.getRule(1).playerDown(message, player, YOU_SUCK);
+				if(player.getMatch().getPitch().getBallPos() == player.getPos()){
+					player.getRule(4).scatterBallAround(userIndex);
+				}
 			}else{
 				var enemyIndex = -1;
 				if(userIndex == 0){
@@ -94,6 +98,14 @@ with(imports) {
 				if(!(player.getRule(0).geTest(mod))){
 					var message = new SBProtocolMessage(player.getTeam().getCoach().getUID(), SBProtocolCommand.EVENT, " ");
 					player.getRule(1).playerDown(message, player, YOU_SUCK);
+					if(player.getMatch().getPitch().getBallPos() == player.getPos()){
+						player.getRule(4).scatterBallAround(userIndex);
+					}
+				}
+				if(!(player.getRule(0).geTest(mod))){
+					if(player.getMatch().getPitch().getBallPos() == player.getPos()){
+						player.getRule(4).scatterBallAround(userIndex);
+					}
 				}
 			}
 		}else{

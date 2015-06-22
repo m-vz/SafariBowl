@@ -119,6 +119,7 @@ with(imports) {
 					player.getRule(1).throwDice(message, defender);
 				}else{
 					player.getRule(1).beatHim(defender, message, true);
+					player.getRule(2).apply(message, defender, defender.getPosition(), player.getTeam().getCoach().getUID(), player, defender.getPos());
 				}
 			} else player.getRule(1).returnFailureMessage(message, SBProtocolMessage.FAILD_BLOCKING_NOT_POSSIBLE);
 		} else player.getRule(1).returnFailureMessage(message, SBProtocolMessage.FAILD_PLAYER_CANNOT_TAKE_ACTION);

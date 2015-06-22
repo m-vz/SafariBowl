@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import javax.vecmath.*;
 
+import server.logic.User;
 import gameLogic.rules.*;
 
 /**
@@ -392,6 +393,14 @@ public class Player {
 			}
 		}
 		return -1;
+	}
+	
+	public void sendMessageShowMe(User user, String a, String b){
+		rules[0].sendMessageShowMe(user, a, b);
+	}
+	
+	public void sendMessageShowMe(String a, String b){
+		rules[0].sendMessageShowMe(a, b);
 	}
 
     // DIRECT GETTERS FOR GUI

@@ -118,7 +118,7 @@ public class RuleMove extends Rule {
 			try{
 				Thread.sleep(300);
 			}catch(InterruptedException e){
-				e.printStackTrace();
+				getMatch().getParent().logStackTrace(e);
 			}
 		}
 		//is the field next to the player?

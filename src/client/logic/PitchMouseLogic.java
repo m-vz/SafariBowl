@@ -395,9 +395,9 @@ public class PitchMouseLogic {
                 }
 
             } catch(IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
+                getGameCanvas().getClient().logStackTrace(ex);
             } catch(NullPointerException ex) {
-                ex.printStackTrace();
+                getGameCanvas().getClient().logStackTrace(ex);
             }
         }
 

@@ -220,7 +220,7 @@ public class LoginPanel extends SBGUIPanel {
             md.update(password.getBytes("UTF-8"));
             digest = md.digest(password.getBytes("UTF-8"));
         } catch (Exception e) {
-            e.printStackTrace();
+            parent.getClient().logStackTrace(e);
         }
         password = DatatypeConverter.printHexBinary(digest).toLowerCase();
         // submit form

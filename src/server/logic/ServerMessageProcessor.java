@@ -68,7 +68,7 @@ public class ServerMessageProcessor implements MessageProcessor {
                         }
                 } catch(ConcurrentModificationException e) {
                     getServer().log(Level.SEVERE, "Catched concurrent modification exception! But continuing anyway.");
-                    e.printStackTrace();
+                    getServer().logStackTrace(e);
                 }
             }
             getProtocolManager().removeUnansweredMessage(message);

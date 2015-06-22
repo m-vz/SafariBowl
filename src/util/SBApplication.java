@@ -72,7 +72,7 @@ public abstract class SBApplication {
             teamsURL = new URL("http", host, 80, file);
         } catch (MalformedURLException e) {
             log(Level.SEVERE, "Could not load available teams. Make sure you are connected to the Internet and the URL is correct.");
-            e.printStackTrace();
+            logStackTrace(e);
         }
         teamManager = new TeamManager(this, teamsURL);
     }
@@ -142,4 +142,13 @@ public abstract class SBApplication {
     public abstract boolean checkIfUserExists(String name);
 
     public abstract void log(Level level, String message);
+
+    /**
+     * Log all elements of a stack trace.
+     * @param e An Exception whose stack trace to print.
+     */
+    public void logStackTrace(Exception e) {
+        for(StackTraceElement element: e.getStackTrace())
+            log(Level.SEVERE, element.toString());
+    }
 }

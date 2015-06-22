@@ -78,7 +78,7 @@ public class ServerMatch extends GameController {
 						returnFailureMessage(message, SBProtocolMessage.FAILD_NOT_YOUR_TURN);
 					}
 				}catch(IndexOutOfBoundsException e){
-					e.printStackTrace();
+					getParent().logStackTrace(e);
 					returnFailureMessage(message, SBProtocolMessage.FAILD_PARAMANIA_HAS_TAKEN_OVER);
 				}
 			}
@@ -181,7 +181,7 @@ public class ServerMatch extends GameController {
 							return false;
 					}
 				}catch(IndexOutOfBoundsException e){
-					e.printStackTrace();
+					getParent().logStackTrace(e);
 					returnFailureMessage(message, SBProtocolMessage.FAILD_PARAMANIA_HAS_TAKEN_OVER);
 					return false;
 				}
@@ -285,7 +285,7 @@ public class ServerMatch extends GameController {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				getParent().logStackTrace(e);
 			}
 		}
 	}
@@ -550,7 +550,7 @@ public class ServerMatch extends GameController {
 			returnFailureMessage(message, SBProtocolMessage.FAILD_GIMME_AN_INT);
 			return;
 		} catch(ArrayIndexOutOfBoundsException e) {
-			e.printStackTrace();
+			getParent().logStackTrace(e);
 			return;
 		}
 		PitchField[] path = new PitchField[x.length];

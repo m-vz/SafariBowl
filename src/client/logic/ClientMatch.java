@@ -72,7 +72,7 @@ public class ClientMatch extends GameController {
 							break;
 					}
 				}catch(IndexOutOfBoundsException e){
-					e.printStackTrace();
+					getClient().logStackTrace(e);
 					returnFailureMessage(message, SBProtocolMessage.FAILD_PARAMANIA_HAS_TAKEN_OVER);
 				}
 			}
@@ -414,7 +414,7 @@ public class ClientMatch extends GameController {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				getClient().logStackTrace(e);
 			}
 		}
 	}
@@ -623,7 +623,7 @@ public class ClientMatch extends GameController {
 					teams[actingUserIndex].getPlayers().get(playerIndex).invokeAdjustPosition(getPitch().getFields()[playerPosX][playerPosY]);
 				}
 			}catch(NullPointerException e){
-				e.printStackTrace();
+				getClient().logStackTrace(e);
 			}
 			teams[actingUserIndex].getPlayers().get(playerIndex).getPosition().adjustPlayer(teams[actingUserIndex].getPlayers().get(playerIndex));
 			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetIsHoldingBall(Boolean.parseBoolean(message.getParameterContent(12)));

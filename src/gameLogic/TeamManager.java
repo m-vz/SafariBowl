@@ -49,7 +49,7 @@ public class TeamManager {
             try {
                 teamsStream = new DataInputStream(teamsURL.openStream());
             } catch (IOException e) {
-                e.printStackTrace();
+                getParent().logStackTrace(e);
             }
 
             if(teamsStream != null) { // stream was successfully opened
@@ -57,7 +57,7 @@ public class TeamManager {
                     tempFile.delete(); // delete old temp file
                     Files.copy(teamsStream, Paths.get(tempFile.toURI()));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    getParent().logStackTrace(e);
                 }
             }
         }
@@ -164,12 +164,12 @@ public class TeamManager {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            getParent().logStackTrace(e);
         } catch (NullPointerException e) {
-            e.printStackTrace();
+            getParent().logStackTrace(e);
         } catch (ScriptException e) {
             getParent().log(Level.SEVERE, "Exception in script " + filename + ".");
-            e.printStackTrace();
+            getParent().logStackTrace(e);
             System.exit(-1);
         }
 
@@ -204,14 +204,14 @@ public class TeamManager {
                 for(Object param : params)
                     getParent().log(Level.SEVERE, param.toString());
             }
-            e.printStackTrace();
+            getParent().logStackTrace(e);
             System.exit(-1);
         } catch (NoSuchMethodException ignored) { // script didn't contain method
             // Removed warnings to prevent overflowing the logs
             // getParent().log(Level.WARNING, "Script of " + actor.getName() + " didn't contain method " + functionName + ".");
-            // e.printStackTrace();
+            // getParent().logStackTrace(e);
         } catch (NullPointerException e) { // invocable didn't exist
-            e.printStackTrace();
+            getParent().logStackTrace(e);
         }
         return null;
     }

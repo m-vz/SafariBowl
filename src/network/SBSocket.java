@@ -204,7 +204,7 @@ public class SBSocket {
                     }
                     try { // sleep for a bit after each received message (prevents null from flooding the logs)
                         Thread.sleep(10);
-                    } catch (InterruptedException e) { e.printStackTrace(); }
+                    } catch (InterruptedException e) { getSocketManager().getParent().logStackTrace(e); }
                 } else {
                     break;
                 }

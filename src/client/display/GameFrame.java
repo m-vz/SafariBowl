@@ -307,7 +307,7 @@ public class GameFrame extends SBFrame {
                 }
             } catch (NullPointerException e) {
                 getClient().log(Level.WARNING, "Catched nullpointer while blitzing! (But continuing)");
-                e.printStackTrace();
+                getClient().logStackTrace(e);
             }
         }
     }
@@ -323,7 +323,7 @@ public class GameFrame extends SBFrame {
                 getClient().sendGameMessage(new SBProtocolMessage(getClient().getUID(), SBProtocolCommand.ACTIO, params));
             } catch (NullPointerException e) {
                 getClient().log(Level.WARNING, "Catched nullpointer while throwing! (But continuing)");
-                e.printStackTrace();
+                getClient().logStackTrace(e);
             }
         }
     }

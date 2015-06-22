@@ -81,9 +81,9 @@ public class Client extends SBApplication {
      */
     public void processMessages() {
         while(getProtocolManager() == null) { // sometimes accessing getProtocolManager() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
         while(getProtocolManager().getMessagesToProcess() == null) { // sometimes accessing getMessagesToProcess() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
 
         while(getProtocolManager().getMessagesToProcess().size() > 0) {
             SBProtocolMessage message = getProtocolManager().getNextMessageToProcessAndStoreIt();
@@ -97,9 +97,9 @@ public class Client extends SBApplication {
      */
     public void processAnswers() {
         while(getProtocolManager() == null) { // sometimes accessing getProtocolManager() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
         while(getProtocolManager().getAnswersToProcess() == null) { // sometimes accessing getAnswersToProcess() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
 
         while(getProtocolManager().getAnswersToProcess().size() > 0) {
             SBProtocolMessage answer = getProtocolManager().getAnswersToProcess().poll();

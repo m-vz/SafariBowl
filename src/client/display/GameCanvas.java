@@ -280,7 +280,7 @@ public class GameCanvas extends JPanel {
             }
         } catch(NullPointerException e) {
             getClient().log(Level.WARNING, "Received nullpointer in PitchCanvas but continuing anyway.");
-            e.printStackTrace();
+            getGameFrame().getClient().logStackTrace(e);
         }
     }
 

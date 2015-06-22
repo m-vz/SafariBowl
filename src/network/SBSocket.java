@@ -115,7 +115,7 @@ public class SBSocket {
      */
     public void sendMessage(SBProtocolMessage message) {
         if (message != null) {
-            // add to unanswered messages only if the message is no answer to another message and no ping
+        	// add to unanswered messages only if the message is no answer to another message and no ping
             if (message.getModule() != SBProtocolCommand.SBProtocolModule.SUC
                     && message.getModule() != SBProtocolCommand.SBProtocolModule.FAI
                     && message.getModule() != SBProtocolCommand.SBProtocolModule.PNG)

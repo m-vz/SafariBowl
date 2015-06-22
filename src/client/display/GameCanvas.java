@@ -182,7 +182,7 @@ public class GameCanvas extends JPanel {
     @Override
     public void paint(Graphics g) {
         Graphics2D g2D = (Graphics2D) g;
-        render(g2D);
+        if(getClient().getMatch() != null)render(g2D);
     }
 
     public void render(Graphics2D g) {

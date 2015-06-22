@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<project name="SafariBowl Server &amp; 2 Clients" default="run" basedir=".">
+
+    <target name="clean">
+        <delete dir="bin/jar" />
+        <delete dir="log" />
+    	<delete dir="reports"/>
+        <mkdir dir="bin/jar" />
+        <mkdir dir="doc" />
+        <mkdir dir="reports" />
+    </target>
+
+    <target name="build" depends="clean">
+        <mkdir dir="bin/classes" />
+        <javac srcdir="src" destdir="bin/classes" includes="**/*.java" includeantruntime="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="doc" depends="build">
+        <javadoc sourcepath="src"
+                 destdir="doc"
+                 author="true"
+                 version="true"
+                 use="true"
+                 windowtitle="SafariBowl Documentation">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+            <doctitle><![CDATA[<h1>SafariBowl</h1>]]></doctitle>
+            <tag name="TODO" scope="all" description="To do:"/>
+        </javadoc>
+    </target>
+
+	<target name="junit" depends="build">
+		<junit printsummary="yes" haltonerror="yes" haltonfailure="yes" showoutput="yes">
+			<classpath>
+                <fileset dir="lib" includes="*.jar"/>
+                <pathelement location="bin/classes"/>
+			</classpath>
+
+			<formatter type="xml"/>
+			
+			<batchtest fork="yes" todir="reports">
+				<fileset dir="src" includes="**/*Test.java"/>
+			</batchtest>
+		</junit>
+	</target>
+
+    <target name="jar" depends="build">
+        <mkdir dir="bin/jar" />
+        <jar destfile="bin/jar/Client.jar">
+            <fileset dir="bin/classes/"/>
+            <fileset dir="resources/"/>
+            <zipgroupfileset dir="lib" includes="**/*.jar" />
+            <manifest>
+                <attribute name="Main-Class" value="client.Client" />
+            </manifest>
+        </jar>
+        <jar destfile="bin/jar/Server.jar">
+            <fileset dir="bin/classes/"/>
+            <fileset dir="resources/"/>
+            <zipgroupfileset dir="lib" includes="**/*.jar" />
+            <manifest>
+                <attribute name="Main-Class" value="server.Server" />
+            </manifest>
+        </jar>
+        <jar destfile="bin/jar/SafariBowl.jar">
+            <fileset dir="bin/classes/"/>
+            <fileset dir="resources/"/>
+            <zipgroupfileset dir="lib" includes="**/*.jar" />
+            <manifest>
+                <attribute name="Main-Class" value="util.MainApplication" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="jar">
+        <parallel>
+            <java jar="bin/jar/Server.jar" fork="true" />
+            <java jar="bin/jar/Client.jar" fork="true" />
+            <java jar="bin/jar/Client.jar" fork="true" />
+        </parallel>
+    </target>
+
+</project>

@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+bin
+data
+doc
+*.log
+*.log.*
+milestones
+reports
+SafariBowl.iml

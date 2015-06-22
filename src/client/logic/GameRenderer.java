@@ -388,8 +388,8 @@ public class GameRenderer {
             }
 
             String[] stats = new String[]{
-                    "BE: " + player.$GUIgetRemainingBe() + "/" + player.$GUIgetBe() + "  ST: " + player.$GUIgetSt(),
-                    "GE: " + player.$GUIgetGe() + "    RS: " + player.$GUIgetRs()};
+                    "MA: " + player.$GUIgetRemainingBe() + "/" + player.$GUIgetBe() + "  ST: " + player.$GUIgetSt(),
+                    "AG: " + player.$GUIgetGe() + "    AV: " + player.$GUIgetRs()};
             for(String string : stats) {
                 int w = metricsStats.stringWidth(string);
                 if(w > width) width = w;
@@ -945,10 +945,10 @@ public class GameRenderer {
             g.setFont(textFont);
             String[] strings = new String[]{
                     p.getPrice()+CURRENCY_SYMBOL,
-                    "BE: "+p.$GUIgetBe(),
+                    "MV: "+p.$GUIgetBe(),
                     "ST: "+p.$GUIgetSt(),
-                    "GE: "+p.$GUIgetGe(),
-                    "RS: "+p.$GUIgetRs(),
+                    "AG: "+p.$GUIgetGe(),
+                    "AV: "+p.$GUIgetRs(),
                     "Left: "+headcountLeft};
             for (int j = 0; j < strings.length; j++) {
                 g.drawString(strings[j], i == 0 ? hD : 0, ResourceManager.IMAGE_HEIGHT + (description.length+1)*hD + j*hN + 3*hN);

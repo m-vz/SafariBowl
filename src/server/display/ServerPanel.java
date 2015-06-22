@@ -99,6 +99,13 @@ public class ServerPanel extends SBGUIPanel {
     }
 
     /**
+     * Empties the text in the chat/message field.
+     */
+    public void emptyMessageField() {
+        messageField.setText("");
+    }
+
+    /**
      * Tell parent to stop and start the server.
      */
     private void restartServer() {
@@ -165,12 +172,16 @@ public class ServerPanel extends SBGUIPanel {
             if(text.toLowerCase().equals("/games") || text.toLowerCase().equals("/g")) { // get games list command
                 parent.getServer().log(Level.INFO, "Getting games list.");
                 parent.getServer().getGamesList();
-                messageField.setText("");
+                emptyMessageField();
                 return;
             } else if(text.toLowerCase().equals("/users") || text.toLowerCase().equals("/u")) { // get users list command
                 parent.getServer().log(Level.INFO, "Getting list of users online.");
                 parent.getServer().getUsersList();
-                messageField.setText("");
+                emptyMessageField();
+                return;
+            } else if(text.toLowerCase().startsWith("/cheat ")) { // get begin cheating
+                parent.getServer().cheat(text.toLowerCase().substring(7));
+                emptyMessageField();
                 return;
             } else {
                 message = text;
@@ -181,7 +192,7 @@ public class ServerPanel extends SBGUIPanel {
         if(!recipient.equals("all")) {
             messageField.setText("@"+recipient+" ");
             autoFilledChatRecipient = true;
-        } else messageField.setText("");
+        } else emptyMessageField();
     }
 
     /**
@@ -225,7 +236,7 @@ public class ServerPanel extends SBGUIPanel {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && autoFilledChatRecipient) messageField.setText("");
+                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && autoFilledChatRecipient) emptyMessageField();
                 if (e.getKeyCode() != KeyEvent.VK_ENTER) autoFilledChatRecipient = false;
             }
 

@@ -1,8 +1,9 @@
 package server.shells;
 
+import java.util.logging.Level;
+import java.util.Scanner;
 import server.ServerListener;
 import server.Server;
-import java.util.logging.Level;
 
 public class LineShell implements ServerListener {
 
@@ -24,6 +25,7 @@ public class LineShell implements ServerListener {
     }
 
     public void started() {
+        (new Thread(new LineReader())).start();
     }
 
     public void startException() {
@@ -43,8 +45,54 @@ public class LineShell implements ServerListener {
     }
 
     public void log(Level level, String message) {
-        if(level.intValue() >= LOG_OUTPUT_LEVEL.intValue()){
+        if(level.intValue() >= LOG_OUTPUT_LEVEL.intValue()) {
             System.out.println(message);
+        }
+    }
+
+    class LineReader implements Runnable {
+
+        public void run() {
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("sb> ");
+                String rawCmd = scanner.next();
+
+                parseCmd(rawCmd);
+            }
+        }
+
+        private void parseCmd(String rawCmd) {
+            String message, recipient;
+            String text = rawCmd;
+            
+            if(rawCmd.startsWith("@")) {
+                // "@milan hello there!" -> message = "hello there!" recipient = "milan"
+                message = text.replaceAll("^@\\S+", "");
+                if(message.length() > 1) {
+                    message = message.substring(1, message.length());
+                    recipient = text.substring(1, text.length() - message.length() - 1);
+                }
+                else return; // don't send if message was empty
+            } else {
+                // check if it is a command
+                if(text.toLowerCase().equals("/games") || text.toLowerCase().equals("/g")) { // get games list command
+                    server.log(Level.INFO, "Getting games list.");
+                    server.getGamesList();
+
+                    return;
+                } else if(text.toLowerCase().equals("/users") || text.toLowerCase().equals("/u")) { // get users list command
+                    server.log(Level.INFO, "Getting list of users online.");
+                    server.getUsersList();
+
+                    return;
+                } else {
+                    message = text;
+                    recipient = "all";
+                }
+            }
+            server.chat(recipient.toLowerCase().trim(), message);
         }
     }
 }

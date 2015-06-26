@@ -317,6 +317,7 @@ public class Server extends SBApplication {
      */
     public void log(Level level, String message) {
         System.out.println(message);
+		if(!message.endsWith("....")) L.log(level, message);
     }
 
     /**

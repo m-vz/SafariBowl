@@ -46,7 +46,7 @@
 			</classpath>
 
 			<formatter type="xml"/>
-			
+
 			<batchtest fork="yes" todir="reports">
 				<fileset dir="src" includes="**/*Test.java"/>
 			</batchtest>
@@ -68,7 +68,7 @@
             <fileset dir="resources/"/>
             <zipgroupfileset dir="lib" includes="**/*.jar" />
             <manifest>
-                <attribute name="Main-Class" value="server.Server" />
+                <attribute name="Main-Class" value="server.ServerController" />
             </manifest>
         </jar>
         <jar destfile="bin/jar/SafariBowl.jar">

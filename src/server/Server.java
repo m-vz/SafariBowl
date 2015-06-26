@@ -16,14 +16,6 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Level;
 
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 /**
  * The main server application
  * Created by milan on 18.3.15.
@@ -32,54 +24,23 @@ public class Server extends SBApplication {
 
     private static final SBLogger L = new SBLogger(Server.class.getName(), util.SBLogger.LOG_LEVEL);
 
-    public static final int DEFAULT_PORT = 9989, TIME_AFTER_CONNECTION_LOST_BEFORE_AUTOSURRENDER = 40*1000;
+    public static final int TIME_AFTER_CONNECTION_LOST_BEFORE_AUTOSURRENDER = 40*1000;
     public static final Level LOG_OUTPUT_LEVEL = Level.INFO;
 
     private Vector<User> usersWaitingForRandomGame = new Vector<User>();
     private Vector<ServerMatch> runningMatches = new Vector<ServerMatch>();
     private ServerSocketManager socketManager;
     private ServerProtocolManager protocolManager;
+
     private UserManager userManager;
     private ServerMessageProcessor messageProcessor;
 
-    /**
-     * The main method of the server.
-     * @param args Command line arguments.
-     */
-    public static void main(String[] args) throws ParseException {
-        Option helpOption = Option.builder("h")
-                            .longOpt("help")
-                            .required(false)
-                            .desc("shows this message")
-                            .build();
+	private ServerListener serverShell;
 
-        Option portOption = Option.builder("p")
-                            .longOpt("port")
-                            .numberOfArgs(1)
-                            .required(false)
-                            .type(Number.class)
-                            .desc("port this server listens on")
-                            .build();
-
-        Options options = new Options();
-        options.addOption(portOption);
-        options.addOption(helpOption);
-
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmdLine = parser.parse(options, args);
-
-        if (cmdLine.hasOption("help")) {
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("sb server", options);
-        } else {
-            int port = cmdLine.hasOption("port") ?
-                       ((Number)cmdLine.getParsedOptionValue("port")).intValue() : DEFAULT_PORT;
-
-            Server server = new Server();
-            server.runServer();
-            server.start(port);
-        }
-    }
+	public Server(ServerListener serverShell) {
+		this.serverShell = serverShell;
+		serverShell.setServer(this);
+	}
 
     /**
      * Start the server application
@@ -121,6 +82,7 @@ public class Server extends SBApplication {
                 broadcastUpdatedGamesList();
             }
         })).start();
+        this.serverShell.teamsLoaded();
     }
 
     // MESSAGE & ANSWER PROCESSING
@@ -265,11 +227,13 @@ public class Server extends SBApplication {
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
-					stop();
+                    stop();
                 }
             });
+			this.serverShell.started();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Exception while starting server on port " + port + ". " + e.toString());
+			this.serverShell.startException();
         }
     }
 
@@ -282,6 +246,8 @@ public class Server extends SBApplication {
             socketManager.stopServer();
             logOutAllUsers();
             finishAllMatches();
+
+			this.serverShell.stopped();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Could not stop server. " + e.toString());
         }
@@ -316,8 +282,8 @@ public class Server extends SBApplication {
      * @param message The message to log.
      */
     public void log(Level level, String message) {
-        System.out.println(message);
-		if(!message.endsWith("....")) L.log(level, message);
+        this.serverShell.log(level, message);
+        if(!message.endsWith("....")) L.log(level, message);
     }
 
     /**
@@ -483,8 +449,7 @@ public class Server extends SBApplication {
         }
         usersList = usersList.replaceAll("\\n$", ""); // remove last newline
 
-        if(usersList.length() > 0) log(Level.INFO, usersList);
-        else log(Level.INFO, "No users online right now.");
+        this.serverShell.gotUserList(usersList);
     }
 
     /**
@@ -507,8 +472,7 @@ public class Server extends SBApplication {
             gamesList += user.getName() + " is waiting for someone to join his game.\n";
         gamesList = gamesList.replaceAll("\\n$", ""); // remove last newline
 
-        if(gamesList.length()> 0) log(Level.INFO, gamesList);
-        else log(Level.INFO, "No games on the server right now.");
+        this.serverShell.gotGameList(gamesList);
     }
 
     /**

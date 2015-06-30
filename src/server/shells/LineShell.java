@@ -91,6 +91,9 @@ public class LineShell implements ServerListener {
                     System.exit(0);
 
                     return;
+                } else if(rawCmd.toLowerCase().startsWith("/cheat ")) { // get begin cheating
+                    server.cheat(rawCmd.toLowerCase().substring(7));
+                    return;
                 } else {
                     message = rawCmd;
                     recipient = "all";

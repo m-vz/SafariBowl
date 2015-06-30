@@ -523,7 +523,6 @@ public class Server extends SBApplication {
             match.sendGame();
         } else {
             log(Level.INFO, "Cheat not known.");
-            getFrame().getServerPanel().emptyMessageField();
         }
     }
 

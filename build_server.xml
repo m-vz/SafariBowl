@@ -60,7 +60,7 @@
             <fileset dir="resources/"/>
             <zipgroupfileset dir="lib" includes="**/*.jar" />
             <manifest>
-                <attribute name="Main-Class" value="server.Server" />
+                <attribute name="Main-Class" value="server.ServerController" />
             </manifest>
         </jar>
     </target>

@@ -3,7 +3,6 @@ package server;
 import gameLogic.GameController;
 import server.logic.*;
 import network.*;
-import server.display.*;
 import util.*;
 
 import javax.swing.*;
@@ -22,44 +21,33 @@ import java.util.logging.Level;
  * Created by milan on 18.3.15.
  */
 public class Server extends SBApplication {
-	
+
     private static final SBLogger L = new SBLogger(Server.class.getName(), util.SBLogger.LOG_LEVEL);
 
-    public static final int DEFAULT_PORT = 9989, TIME_AFTER_CONNECTION_LOST_BEFORE_AUTOSURRENDER = 40*1000;
+    public static final int TIME_AFTER_CONNECTION_LOST_BEFORE_AUTOSURRENDER = 40*1000;
     public static final Level LOG_OUTPUT_LEVEL = Level.INFO;
 
     private Vector<User> usersWaitingForRandomGame = new Vector<User>();
     private Vector<ServerMatch> runningMatches = new Vector<ServerMatch>();
     private ServerSocketManager socketManager;
     private ServerProtocolManager protocolManager;
-    private ServerFrame frame;
+
     private UserManager userManager;
     private ServerMessageProcessor messageProcessor;
 
-    /**
-     * The main method of the server.
-     * @param args Command line arguments.
-     */
-    public static void main(String[] args) {
+	private ServerListener serverShell;
 
-        Server server = new Server();
-        server.runServer();
-
-    }
+	public Server(ServerListener serverShell) {
+		this.serverShell = serverShell;
+		serverShell.setServer(this);
+	}
 
     /**
      * Start the server application
      */
     public void runServer() {
-        // prepare and show server frame
-        frame = new ServerFrame(this);
-        frame.showServerPanel();
-        frame.setVisible(true);
-        frame.getServerPanel().setControlsEnabled(false);
-
         // prepare team manager
         loadAvailableTeamsLocally();
-        frame.getServerPanel().setControlsEnabled(true);
 
         // prepare the message processor
         messageProcessor = new ServerMessageProcessor(this);
@@ -94,6 +82,7 @@ public class Server extends SBApplication {
                 broadcastUpdatedGamesList();
             }
         })).start();
+        this.serverShell.teamsLoaded();
     }
 
     // MESSAGE & ANSWER PROCESSING
@@ -119,9 +108,11 @@ public class Server extends SBApplication {
      */
     public void processAnswers() {
         while(getProtocolManager() == null) { // sometimes accessing getProtocolManager() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+        }
         while(getProtocolManager().getAnswersToProcess() == null) { // sometimes accessing getAnswersToProcess() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); } }
+            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+        }
 
         while(getProtocolManager().getAnswersToProcess().size() > 0) {
             SBProtocolMessage answer = getProtocolManager().getAnswersToProcess().poll(); // get message
@@ -187,7 +178,7 @@ public class Server extends SBApplication {
         SBProtocolParameterArray scoresParameters = new SBProtocolParameterArray(),
                                  scoreParameters;
         //noinspection unchecked
-        Vector<User> usersTemp = (Vector<User>) getUserManager().getUsers().clone();
+        Vector<User> usersTemp = (Vector<User>)getUserManager().getUsers().clone();
         DecimalFormat format = new DecimalFormat("0.###");
         double max;
         int maxIndex;
@@ -233,11 +224,16 @@ public class Server extends SBApplication {
             log(Level.INFO, "My UID is " + UID);
             // start server
             socketManager.startServer(port);
-            frame.getServerPanel().setServerRunning();
-            frame.getServerPanel().focusPortField();
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    stop();
+                }
+            });
+			this.serverShell.started();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Exception while starting server on port " + port + ". " + e.toString());
-            frame.getServerPanel().focusPortField();
+			this.serverShell.startException();
         }
     }
 
@@ -250,8 +246,8 @@ public class Server extends SBApplication {
             socketManager.stopServer();
             logOutAllUsers();
             finishAllMatches();
-            frame.getServerPanel().setServerStopped();
-            frame.getServerPanel().focusPortField();
+
+			this.serverShell.stopped();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Could not stop server. " + e.toString());
         }
@@ -271,7 +267,7 @@ public class Server extends SBApplication {
     }
 
     public void finishMatch(ServerMatch match) {
-    	if(logmatches)addFinishedGame(match);
+        if(logmatches) addFinishedGame(match);
         removeRunningMatch(match);
         broadcastUpdatedGamesList();
         match.getUser(0).setInGame(false);
@@ -286,9 +282,7 @@ public class Server extends SBApplication {
      * @param message The message to log.
      */
     public void log(Level level, String message) {
-        if(getFrame() != null)
-            if(getFrame().getServerPanel() != null)
-                if(level.intValue() >= LOG_OUTPUT_LEVEL.intValue()) getFrame().getServerPanel().writeMessage(message);
+        this.serverShell.log(level, message);
         if(!message.endsWith("....")) L.log(level, message);
     }
 
@@ -297,7 +291,7 @@ public class Server extends SBApplication {
      * @param returnTo The message to return an answer to.
      * @param parameters The parameters to send with the answer.
      */
-    public void returnSuccessMessage(SBProtocolMessage returnTo, String... parameters) {
+    public void returnSuccessMessage(SBProtocolMessage returnTo, String ... parameters) {
         returnTo.returnSuccessMessage(UID, new SBProtocolParameterArray(parameters));
     }
 
@@ -306,7 +300,7 @@ public class Server extends SBApplication {
      * @param returnTo The message to return an answer to.
      * @param parameters The parameters to send with the answer.
      */
-    public void returnFailureMessage(SBProtocolMessage returnTo, String... parameters) {
+    public void returnFailureMessage(SBProtocolMessage returnTo, String ... parameters) {
         returnTo.returnFailureMessage(UID, new SBProtocolParameterArray(parameters));
     }
 
@@ -315,7 +309,7 @@ public class Server extends SBApplication {
      * @param command The command of the message to send.
      * @param parameters The parameters of the message to send.
      */
-    public void sendBroadcastMessage(SBProtocolCommand command, String... parameters) {
+    public void sendBroadcastMessage(SBProtocolCommand command, String ... parameters) {
         socketManager.sendBroadcastMessage(new SBProtocolMessage(UID, command, new SBProtocolParameterArray(parameters)));
     }
 
@@ -370,7 +364,7 @@ public class Server extends SBApplication {
                             if(getUserManager().getAuthenticatedUser(UID) == null && uidWhenLostConnection.equals(getUID())) {
                                 for(ServerMatch matchCheck: runningMatches) { // check if match is still running
                                     if(matchCheck.getUser(0).getUID().equals(UID) || matchCheck.getUser(1).getUID().equals(UID)
-                                            || matchCheck.getUser(0).getLastUID().equals(UID) || matchCheck.getUser(1).getLastUID().equals(UID)) { // users are in this match
+                                       || matchCheck.getUser(0).getLastUID().equals(UID) || matchCheck.getUser(1).getLastUID().equals(UID)) {      // users are in this match
                                         if(match.isRunning()) match.finishGame(userToLogOut);
                                         break;
                                     }
@@ -455,8 +449,7 @@ public class Server extends SBApplication {
         }
         usersList = usersList.replaceAll("\\n$", ""); // remove last newline
 
-        if(usersList.length() > 0) getFrame().getServerPanel().writeMessage(usersList);
-        else getFrame().getServerPanel().writeMessage("No users online right now.");
+        this.serverShell.gotUserList(usersList);
     }
 
     /**
@@ -479,8 +472,7 @@ public class Server extends SBApplication {
             gamesList += user.getName() + " is waiting for someone to join his game.\n";
         gamesList = gamesList.replaceAll("\\n$", ""); // remove last newline
 
-        if(gamesList.length()> 0) getFrame().getServerPanel().writeMessage(gamesList);
-        else getFrame().getServerPanel().writeMessage("No games on the server right now.");
+        this.serverShell.gotGameList(gamesList);
     }
 
     /**
@@ -515,10 +507,6 @@ public class Server extends SBApplication {
         getUsersWaitingForRandomGame().remove(user);
     }
 
-    public ServerFrame getFrame() {
-        return frame;
-    }
-
     public Vector<User> getUsersWaitingForRandomGame() {
         return usersWaitingForRandomGame;
     }
@@ -545,7 +533,7 @@ public class Server extends SBApplication {
      */
     @SuppressWarnings("unchecked")
     public Vector<ServerMatch> getRunningMatches() {
-        return (Vector<ServerMatch>) runningMatches.clone();
+        return (Vector<ServerMatch>)runningMatches.clone();
     }
 
     /**
@@ -562,10 +550,13 @@ public class Server extends SBApplication {
 
     // UNUSED
 
-    public void lostConnection() {}
+    public void lostConnection() {
+    }
 
-    public void isConnecting() {}
+    public void isConnecting() {
+    }
 
-    public void hasConnected(InetAddress address, int port, boolean connected) {}
+    public void hasConnected(InetAddress address, int port, boolean connected) {
+    }
 
 }

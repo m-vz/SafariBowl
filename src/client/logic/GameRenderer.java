@@ -13,7 +13,6 @@ import util.ResourceManager;
 import javax.vecmath.Vector2d;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.util.ArrayList;
@@ -131,14 +130,14 @@ public class GameRenderer {
 
         if(player.$GUIgetPlayerCondition() == PlayerCondition.PRONE || player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw star if proned
             drawImageWithOp(
-                    g, ResourceManager.PROP_STAR, null,
-                    -(left ? 0 : ResourceManager.IMAGE_WIDTH/2)+tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.PROP_STAR.getWidth(), ty + ResourceManager.IMAGE_HEIGHT/4,
+                    g, ResourceManager.IMAGE_PROP_STAR, null,
+                    -(left ? 0 : ResourceManager.IMAGE_WIDTH/2)+tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.IMAGE_PROP_STAR.getWidth(), ty + ResourceManager.IMAGE_HEIGHT/4,
                     getT(), 0, true);
         }
         if(player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw second star if stunned
             drawImageWithOp(
-                    g, ResourceManager.PROP_STAR, null,
-                    -(left ? 0 : ResourceManager.IMAGE_WIDTH/2)+tx+ResourceManager.IMAGE_WIDTH-3*(double) ResourceManager.PROP_STAR.getWidth()/2, ty + ResourceManager.IMAGE_HEIGHT/4,
+                    g, ResourceManager.IMAGE_PROP_STAR, null,
+                    -(left ? 0 : ResourceManager.IMAGE_WIDTH/2)+tx+ResourceManager.IMAGE_WIDTH-3*(double) ResourceManager.IMAGE_PROP_STAR.getWidth()/2, ty + ResourceManager.IMAGE_HEIGHT/4,
                     getT(), 0, true);
         }
 
@@ -206,17 +205,17 @@ public class GameRenderer {
 
             drawImageWithOp(g, sprite, null, tx, ty, scale, 0, false); // draw on bench
             if(player.getRedCard()) // draw red card if player was expelled from match
-                drawImageWithOp(g, ResourceManager.PROP_RED_CARD, null, tx, ty, scale, 0, false);
+                drawImageWithOp(g, ResourceManager.IMAGE_PROP_RED_CARD, null, tx, ty, scale, 0, false);
             if(player.$GUIgetPlayerCondition() == PlayerCondition.PRONE || player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw star if proned
                 drawImageWithOp(
-                        g, ResourceManager.PROP_STAR, null,
+                        g, ResourceManager.IMAGE_PROP_STAR, null,
                         tx+ResourceManager.IMAGE_WIDTH, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
                         getT(), 0, true);
             }
             if(player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw second star if stunned
                 drawImageWithOp(
-                        g, ResourceManager.PROP_STAR, null,
-                        tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.PROP_STAR.getWidth()/2, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
+                        g, ResourceManager.IMAGE_PROP_STAR, null,
+                        tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.IMAGE_PROP_STAR.getWidth()/2, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
                         getT(), 0, true);
             }
 
@@ -241,17 +240,17 @@ public class GameRenderer {
 
             drawImageWithOp(g, sprite, new RescaleOp(new float[]{0.8f, 0.8f, 0.8f, 1}, new float[4], null), tx, ty, scale, 0, false); // draw on bench
             if(player.getRedCard()) // draw red card if player was expelled from match
-                drawImageWithOp(g, ResourceManager.PROP_RED_CARD, null, tx, ty, scale, 0, false);
+                drawImageWithOp(g, ResourceManager.IMAGE_PROP_RED_CARD, null, tx, ty, scale, 0, false);
             if(player.$GUIgetPlayerCondition() == PlayerCondition.PRONE || player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw star if proned
                 drawImageWithOp(
-                        g, ResourceManager.PROP_STAR, null,
+                        g, ResourceManager.IMAGE_PROP_STAR, null,
                         tx+ResourceManager.IMAGE_WIDTH, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
                         getT(), 0, true);
             }
             if(player.$GUIgetPlayerCondition() == PlayerCondition.STUNNED) { // draw second star if stunned
                 drawImageWithOp(
-                        g, ResourceManager.PROP_STAR, null,
-                        tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.PROP_STAR.getWidth()/2, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
+                        g, ResourceManager.IMAGE_PROP_STAR, null,
+                        tx+ResourceManager.IMAGE_WIDTH-(double) ResourceManager.IMAGE_PROP_STAR.getWidth()/2, ty + 3*ResourceManager.IMAGE_HEIGHT/4,
                         getT(), 0, true);
             }
 
@@ -277,7 +276,7 @@ public class GameRenderer {
             else tx = getW()/scale - actionFieldSize - hospitalWidth + addX - ResourceManager.IMAGE_WIDTH*scale*2;
 
             drawImageWithOp(g, sprite, null, tx, ty, scale, 0, false);
-            BufferedImage bandAid = player.$GUIgetPlayerCondition() == PlayerCondition.INJURED ? ResourceManager.PROP_BAND_AID_DOUBLE : ResourceManager.PROP_BAND_AID;
+            BufferedImage bandAid = player.$GUIgetPlayerCondition() == PlayerCondition.INJURED ? ResourceManager.IMAGE_PROP_BAND_AID_DOUBLE : ResourceManager.IMAGE_PROP_BAND_AID;
             drawImageWithOp(g, bandAid, null, tx + bandAid.getWidth() / 2, ty + ResourceManager.IMAGE_HEIGHT - bandAid.getHeight(), scale, 0, false);
 
         } else { // player is dead
@@ -292,7 +291,7 @@ public class GameRenderer {
     }
 
     public void drawGUI(Graphics2D g) {
-        BufferedImage background = ResourceManager.BACKGROUND;
+        BufferedImage background = ResourceManager.IMAGE_BACKGROUND;
         double scale = getW()/background.getWidth();
         background = scaleImage(background, background.hashCode(), scale);
         g.drawImage(background, null, 0, 0);
@@ -481,7 +480,7 @@ public class GameRenderer {
                     tx = left ? tx + ResourceManager.PEDESTAL_WIDTH/2 : tx - ResourceManager.PEDESTAL_WIDTH/8;
                     ty += ResourceManager.PEDESTAL_WIDTH/2;
                 }
-                drawImageWithOp(g, ResourceManager.PROP_FOOTBALL, null, tx, ty, getT() / 2, 0, true);
+                drawImageWithOp(g, ResourceManager.IMAGE_PROP_FOOTBALL, null, tx, ty, getT() / 2, 0, true);
             }
         }
     }
@@ -956,9 +955,9 @@ public class GameRenderer {
             g.transform(transform);
 
             g.drawImage(p.getSpriteL(), null, 0, 0);
-            if(!getGameCanvas().hasSentChooseTeam()) g.drawImage(ResourceManager.PROP_CROSS, null,
-                    ResourceManager.IMAGE_WIDTH - ResourceManager.PROP_CROSS.getWidth(),
-                    -ResourceManager.PROP_CROSS.getHeight() / 3);
+            if(!getGameCanvas().hasSentChooseTeam()) g.drawImage(ResourceManager.IMAGE_PROP_CROSS, null,
+                    ResourceManager.IMAGE_WIDTH - ResourceManager.IMAGE_PROP_CROSS.getWidth(),
+                    -ResourceManager.IMAGE_PROP_CROSS.getHeight() / 3);
 
             try { g.transform(transform.createInverse()); }
             catch (NoninvertibleTransformException e) {

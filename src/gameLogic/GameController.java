@@ -456,6 +456,7 @@ public abstract class GameController extends Thread{
 	public void setRunning(boolean running) {this.running = running;}
 	public Pitch getPitch(){return pitch;}
 	public int getRoundCount(){return roundCount;}
+	public void setRoundCount(int roundCount){this.roundCount = roundCount;}
 	public void countUpRound(){roundCount++;}
 
 	public Vector<Player> getCasualties() {
@@ -527,7 +528,7 @@ public abstract class GameController extends Thread{
 		score[teamIndex]++;
 	}
 	
-	protected void sendGame(){
+	public void sendGame(){
 		sendTeam(0);
 		sendTeam(1);
 		sendGamePhase();
@@ -724,7 +725,17 @@ public abstract class GameController extends Thread{
 			p.invokeSetIsHoldingBall(false);
 		}	
 	}
-	
+
+	/**
+	 * Set the game phase of this match.
+	 * <br><code><b>0</b></code>: Team Choosing Phase
+	 * <br><code><b>1</b></code>: Team Setup Phase
+	 * <br><code><b>2</b></code>: Kick Phase
+	 * <br><code><b>3</b></code>: Normal Playing Phase
+	 * <br><code><b>4</b></code>: Finishing Phase
+	 * <br><code><b>5</b></code>: WaitingPhase
+	 * @param i The game phase of this match.
+	 */
 	public void setGamePhase(int i){
 		if(i >= 0 && i < 6){
 			this.gamePhase = i;

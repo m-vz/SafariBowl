@@ -151,11 +151,11 @@ public class TeamManager {
                         if (imageR != null) {
                             if (imageR.getWidth() != w || imageR.getHeight() != h) imageR = resize(imageR, w, h);
                             player.setSpriteR(imageR);
-                        } else player.setSpriteR(ResourceManager.DEFAULT_PLAYER_R);
+                        } else player.setSpriteR(ResourceManager.IMAGE_DEFAULT_PLAYER_R);
                         if (imageL != null) {
                             if (imageL.getWidth() != w || imageL.getHeight() != h) imageL = resize(imageL, w, h);
                             player.setSpriteL(imageL);
-                        } else player.setSpriteL(ResourceManager.DEFAULT_PLAYER_L);
+                        } else player.setSpriteL(ResourceManager.IMAGE_DEFAULT_PLAYER_L);
 
                     }
                 }

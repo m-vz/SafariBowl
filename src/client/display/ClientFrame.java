@@ -297,7 +297,7 @@ public class ClientFrame extends SBFrame {
                 "Game invitation from " + userInviting,
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE,
-                new ImageIcon(ResourceManager.MODERATOR_WALRUS)) == 0;
+                new ImageIcon(ResourceManager.IMAGE_MODERATOR_WALRUS)) == 0;
     }
 
     /**
@@ -312,7 +312,7 @@ public class ClientFrame extends SBFrame {
                     "Surrender?",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE,
-                    new ImageIcon(ResourceManager.MODERATOR_TURTLE)) == 0;
+                    new ImageIcon(ResourceManager.IMAGE_MODERATOR_TURTLE)) == 0;
     }
 
     /**

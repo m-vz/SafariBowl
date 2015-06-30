@@ -39,15 +39,15 @@ public class BlockDie implements Die {
     public static BufferedImage getImageFromSide(int side) {
         switch (side) {
             case 1:
-                return ResourceManager.DIE_ATTACKER_DOWN;
+                return ResourceManager.IMAGE_DIE_ATTACKER_DOWN;
             case 2:
-                return ResourceManager.DIE_BOTH_DOWN;
+                return ResourceManager.IMAGE_DIE_BOTH_DOWN;
             case 3:
-                return ResourceManager.DIE_PUSHED;
+                return ResourceManager.IMAGE_DIE_PUSHED;
             case 4:
-                return ResourceManager.DIE_DEFENDER_STUMBLES;
+                return ResourceManager.IMAGE_DIE_DEFENDER_STUMBLES;
             case 5:
-                return ResourceManager.DIE_DEFENDER_DOWN;
+                return ResourceManager.IMAGE_DIE_DEFENDER_DOWN;
             default:
                 return null;
         }

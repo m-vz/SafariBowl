@@ -65,7 +65,7 @@ public class Server extends SBApplication {
             userManager = new UserManager(this, userDatabase);
         } catch (Exception e) {
             log(Level.SEVERE, "Couldn't create user manager. Quitting.");
-            e.printStackTrace();
+            logStackTrace(e);
             for (int i = 0; i < e.getStackTrace().length; i++) {
                 L.log(Level.SEVERE, e.getStackTrace()[i].toString());
             }
@@ -92,9 +92,9 @@ public class Server extends SBApplication {
      */
     public void processMessages() {
         while (getProtocolManager() == null) // sometimes accessing getProtocolManager() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); }
         while (getProtocolManager().getMessagesToProcess() == null) // sometimes accessing getMessagesToProcess() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); }
 
         while (getProtocolManager().getMessagesToProcess().size() > 0) {
             SBProtocolMessage message = getProtocolManager().getNextMessageToProcessAndStoreIt();
@@ -108,11 +108,9 @@ public class Server extends SBApplication {
      */
     public void processAnswers() {
         while(getProtocolManager() == null) { // sometimes accessing getProtocolManager() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
-        }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
         while(getProtocolManager().getAnswersToProcess() == null) { // sometimes accessing getAnswersToProcess() throws a mysterious null pointer exception. Wait until it can't anymore
-            try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
-        }
+            try { Thread.sleep(1); } catch (InterruptedException e) { logStackTrace(e); } }
 
         while(getProtocolManager().getAnswersToProcess().size() > 0) {
             SBProtocolMessage answer = getProtocolManager().getAnswersToProcess().poll(); // get message
@@ -291,7 +289,7 @@ public class Server extends SBApplication {
      * @param returnTo The message to return an answer to.
      * @param parameters The parameters to send with the answer.
      */
-    public void returnSuccessMessage(SBProtocolMessage returnTo, String ... parameters) {
+    public void returnSuccessMessage(SBProtocolMessage returnTo, String... parameters) {
         returnTo.returnSuccessMessage(UID, new SBProtocolParameterArray(parameters));
     }
 
@@ -300,7 +298,7 @@ public class Server extends SBApplication {
      * @param returnTo The message to return an answer to.
      * @param parameters The parameters to send with the answer.
      */
-    public void returnFailureMessage(SBProtocolMessage returnTo, String ... parameters) {
+    public void returnFailureMessage(SBProtocolMessage returnTo, String... parameters) {
         returnTo.returnFailureMessage(UID, new SBProtocolParameterArray(parameters));
     }
 
@@ -309,7 +307,7 @@ public class Server extends SBApplication {
      * @param command The command of the message to send.
      * @param parameters The parameters of the message to send.
      */
-    public void sendBroadcastMessage(SBProtocolCommand command, String ... parameters) {
+    public void sendBroadcastMessage(SBProtocolCommand command, String... parameters) {
         socketManager.sendBroadcastMessage(new SBProtocolMessage(UID, command, new SBProtocolParameterArray(parameters)));
     }
 
@@ -364,7 +362,7 @@ public class Server extends SBApplication {
                             if(getUserManager().getAuthenticatedUser(UID) == null && uidWhenLostConnection.equals(getUID())) {
                                 for(ServerMatch matchCheck: runningMatches) { // check if match is still running
                                     if(matchCheck.getUser(0).getUID().equals(UID) || matchCheck.getUser(1).getUID().equals(UID)
-                                       || matchCheck.getUser(0).getLastUID().equals(UID) || matchCheck.getUser(1).getLastUID().equals(UID)) {      // users are in this match
+                                            || matchCheck.getUser(0).getLastUID().equals(UID) || matchCheck.getUser(1).getLastUID().equals(UID)) { // users are in this match
                                         if(match.isRunning()) match.finishGame(userToLogOut);
                                         break;
                                     }
@@ -466,7 +464,7 @@ public class Server extends SBApplication {
         // add running matches
         for(ServerMatch match: getRunningMatches())
             if(match.isRunning())
-                gamesList += match.getOpponent(0).getName() + " is playing against " + match.getOpponent(1).getName() + ". " + match.getScoreFromTeam(0) + ":" + match.getScoreFromTeam(1) + "\n";
+                gamesList += match.getOpponent(0).getName() + " is playing against " + match.getOpponent(1).getName() + ". " + match.getScoreFromTeam(0) + ":" + match.getScoreFromTeam(1) + " UID: " + match.getMatchID().toString().substring(0, 5) + "\n";
         // add not yet running matches
         for(User user: getUsersWaitingForRandomGame())
             gamesList += user.getName() + " is waiting for someone to join his game.\n";
@@ -494,6 +492,38 @@ public class Server extends SBApplication {
                     log(Level.INFO, "Sent message by " + MODERATOR_NAME + " to " + recipientName + ": " + message);
                 } else log(Level.WARNING, recipientName + " is offline.");
             } else log(Level.WARNING, recipientName + " does not exist");
+        }
+    }
+
+    /**
+     * Cheat.
+     * @param text The cheat command to execute.
+     */
+    public void cheat(String text) {
+        if(text.startsWith("round")) { // change round and set to playing phase
+            text = text.substring(6);
+            ServerMatch match = getRunningMatchById(text.substring(0, 5));
+            int newRoundCount;
+            if(match == null) { // check if match was found
+                log(Level.INFO, "If cheat, cheat right. Match not found.");
+                return;
+            }
+            try { // try to parse the round count to set the match to
+                newRoundCount = Integer.parseInt(text.substring(6));
+            } catch(NumberFormatException e) {
+                log(Level.INFO, "If cheat, cheat right. Illegal round count.");
+                return;
+            }
+            if(newRoundCount <= 0) {
+                log(Level.INFO, "If cheat, cheat right. Round count below zero.");
+                return;
+            }
+            match.setRoundCount(newRoundCount);
+            match.setGamePhase(3); // reset to playing phase
+            match.sendGame();
+        } else {
+            log(Level.INFO, "Cheat not known.");
+            getFrame().getServerPanel().emptyMessageField();
         }
     }
 
@@ -537,6 +567,18 @@ public class Server extends SBApplication {
     }
 
     /**
+     * Returns the running match with match ID beginning with MID.
+     * @param MID The match ID of the match searched for.
+     * @return The running match with match ID beginning with MID.
+     */
+    public ServerMatch getRunningMatchById(String MID) {
+        for(ServerMatch match: getRunningMatches())
+            if(match.getMatchID().toString().startsWith(MID))
+                return match;
+        return null;
+    }
+
+    /**
      * Adds a match to the vector of all running matches.
      * @param match The match to add.
      */
@@ -550,13 +592,10 @@ public class Server extends SBApplication {
 
     // UNUSED
 
-    public void lostConnection() {
-    }
+    public void lostConnection() {}
 
-    public void isConnecting() {
-    }
+    public void isConnecting() {}
 
-    public void hasConnected(InetAddress address, int port, boolean connected) {
-    }
+    public void hasConnected(InetAddress address, int port, boolean connected) {}
 
 }

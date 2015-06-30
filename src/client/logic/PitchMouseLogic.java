@@ -494,7 +494,7 @@ public class PitchMouseLogic {
             int numberOfChosenPlayers = getGameCanvas().getPlayersChosen().size();
             double  playerWidth = getPitchWidth() / Team.MAX_TEAM_SIZE,
                     playerHeight = playerWidth / ResourceManager.IMAGE_RATIO,
-                    crossSize = playerWidth / ResourceManager.IMAGE_WIDTH * ResourceManager.PROP_CROSS.getWidth();
+                    crossSize = playerWidth / ResourceManager.IMAGE_WIDTH * ResourceManager.IMAGE_PROP_CROSS.getWidth();
             boolean hoveringCross = false;
             for (int i = 0; i < numberOfChosenPlayers; i++) {
                 if(mYCoord > getPitchHeight() - playerHeight - crossSize/3 && mYCoord < getPitchHeight() - playerHeight + 2*crossSize/3

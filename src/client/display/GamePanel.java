@@ -160,7 +160,7 @@ public class GamePanel extends SBGamePanel {
                 "Follow?",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE,
-                new ImageIcon(ResourceManager.MODERATOR_WALRUS)) == 0;
+                new ImageIcon(ResourceManager.IMAGE_MODERATOR_WALRUS)) == 0;
     }
 
     // SETUP HELPERS

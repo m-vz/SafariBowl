@@ -3,6 +3,7 @@ package server.display;
 import GUI.SBFrame;
 import GUI.SBGUIPanel;
 import server.Server;
+import server.ServerController;
 import util.SBLogger;
 
 import javax.swing.*;
@@ -35,7 +36,7 @@ public class ServerPanel extends SBGUIPanel {
         // prepare components
         messageField = new JTextField(20);
         portLabel = new JLabel("Port");
-        portField = new JTextField(Server.DEFAULT_PORT+"", 4);
+        portField = new JTextField(ServerController.DEFAULT_PORT+"", 4);
         messagesArea = new JTextArea(1, 20);
         messagesAreaPane = new JScrollPane(messagesArea);
         messagesAreaPane.setPreferredSize(new Dimension(messagesArea.getWidth(), 200));

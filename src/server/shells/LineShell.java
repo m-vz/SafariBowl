@@ -55,6 +55,7 @@ public class LineShell implements ServerListener {
         public void run() {
             Scanner scanner = new Scanner(System.in);
 
+            //noinspection InfiniteLoopStatement
             while (true) {
                 System.out.print("sb> ");
                 String rawCmd = scanner.next();
@@ -65,30 +66,33 @@ public class LineShell implements ServerListener {
 
         private void parseCmd(String rawCmd) {
             String message, recipient;
-            String text = rawCmd;
-            
+
             if(rawCmd.startsWith("@")) {
                 // "@milan hello there!" -> message = "hello there!" recipient = "milan"
-                message = text.replaceAll("^@\\S+", "");
+                message = rawCmd.replaceAll("^@\\S+", "");
                 if(message.length() > 1) {
                     message = message.substring(1, message.length());
-                    recipient = text.substring(1, text.length() - message.length() - 1);
+                    recipient = rawCmd.substring(1, rawCmd.length() - message.length() - 1);
                 }
                 else return; // don't send if message was empty
             } else {
                 // check if it is a command
-                if(text.toLowerCase().equals("/games") || text.toLowerCase().equals("/g")) { // get games list command
+                if(rawCmd.toLowerCase().equals("/games") || rawCmd.toLowerCase().equals("/g")) { // get games list command
                     server.log(Level.INFO, "Getting games list.");
                     server.getGamesList();
 
                     return;
-                } else if(text.toLowerCase().equals("/users") || text.toLowerCase().equals("/u")) { // get users list command
+                } else if(rawCmd.toLowerCase().equals("/users") || rawCmd.toLowerCase().equals("/u")) { // get users list command
                     server.log(Level.INFO, "Getting list of users online.");
                     server.getUsersList();
 
                     return;
+                } else if(rawCmd.toLowerCase().equals("/exit") || rawCmd.toLowerCase().equals("/quit")) { // quit application
+                    System.exit(0);
+
+                    return;
                 } else {
-                    message = text;
+                    message = rawCmd;
                     recipient = "all";
                 }
             }

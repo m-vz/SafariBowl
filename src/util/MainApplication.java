@@ -3,6 +3,8 @@ package util;
 import client.Client;
 import network.SBSocketManager;
 import server.Server;
+import server.shells.GuiShell;
+import server.shells.LineShell;
 
 import java.net.InetAddress;
 import java.util.UUID;
@@ -22,7 +24,7 @@ public class MainApplication extends SBApplication {
             if(args[0].equals("server")) {
                 try {
                     int port = Integer.parseInt(args[1]);
-                    Server server = new Server();
+                    Server server = new Server(new GuiShell());
                     serverOrClient = server;
                     server.runServer();
                     server.start(port);
@@ -40,6 +42,16 @@ public class MainApplication extends SBApplication {
                     client.connect(address, port);
                 } catch(NumberFormatException e) {
                     L.log(Level.SEVERE, "Illegal port. Run with 'client <serverip>:<serverport>'.");
+                    System.exit(-1);
+                }
+            } else if(args[0].equals("lineserver")) {
+                try {
+                    int port = Integer.parseInt(args[1]);
+                    Server server = new Server(new LineShell(port));
+                    serverOrClient = server;
+                    server.runServer();
+                } catch(NumberFormatException e) {
+                    L.log(Level.SEVERE, "Illegal port. Run with 'lineserver <listenport>'.");
                     System.exit(-1);
                 }
             } else {

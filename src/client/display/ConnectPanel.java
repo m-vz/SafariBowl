@@ -2,6 +2,7 @@ package client.display;
 
 import GUI.SBGUIPanel;
 import server.Server;
+import server.ServerController;
 import util.SBLogger;
 
 import javax.swing.*;
@@ -40,7 +41,7 @@ public class ConnectPanel extends SBGUIPanel {
         JLabel addressLabel = new JLabel("IP Address");
         addressField = new JTextField("localhost", 10);
         JLabel portLabel = new JLabel("Port");
-        portField = new JTextField(Server.DEFAULT_PORT+"", 10);
+        portField = new JTextField(ServerController.DEFAULT_PORT+"", 10);
         connectButton = new JButton("Connect");
 
         // set constraints

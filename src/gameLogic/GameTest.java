@@ -9,6 +9,8 @@ import org.junit.Test;
 
 import server.Server;
 import client.Client;
+import server.ServerController;
+import server.shells.LineShell;
 
 public class GameTest {
 
@@ -16,7 +18,7 @@ public class GameTest {
 	private static Client client1, client2;
 
 	static {
-		server = new Server();
+		server = new Server(new LineShell(ServerController.DEFAULT_PORT));
 		server.runServer();
 		server.start(9989);
 		server.logmatches = false;

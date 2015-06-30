@@ -14,13 +14,12 @@ public class GuiShell implements ServerListener {
 
     public void setServer(Server server) {
         this.server = server;
-    }
-
-    public void teamsLoaded() {
-        System.out.println("blah)");
         this.frame = new ServerFrame(this.server);
         this.frame.showServerPanel();
         this.frame.setVisible(true);
+    }
+
+    public void teamsLoaded() {
         this.frame.getServerPanel().setControlsEnabled(true);
     }
 

@@ -61,7 +61,7 @@ public class LineShell implements ServerListener {
             //noinspection InfiniteLoopStatement
             while (true) {
                 System.out.print("sb> ");
-                String rawCmd = scanner.next();
+                String rawCmd = scanner.nextLine();
 
                 CommandParser.parse(rawCmd, server);
             }

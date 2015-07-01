@@ -515,7 +515,7 @@ public class Server extends SBApplication {
                 return;
             }
             if(newRoundCount <= 0) {
-                log(Level.INFO, "If cheat, cheat right. Round count below zero.");
+                log(Level.INFO, "If cheat, cheat right. Round count below one.");
                 return;
             }
             match.setRoundCount(newRoundCount);

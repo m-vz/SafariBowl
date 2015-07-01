@@ -5,6 +5,9 @@ import GUI.SBGUIPanel;
 import server.Server;
 import server.ServerController;
 import util.SBLogger;
+import util.CommandParser;
+import util.CommandParser.Command;
+import util.CommandResult;
 
 import javax.swing.*;
 import java.awt.*;
@@ -158,42 +161,22 @@ public class ServerPanel extends SBGUIPanel {
      * Send a chat message to some- or everybody.
      */
     private void sendMessage() {
-        String message, recipient;
-        String text = messageField.getText();
-        if(messageField.getText().startsWith("@")) {
-            // "@milan hello there!" -> message = "hello there!" recipient = "milan"
-            message = text.replaceAll("^@\\S+", "");
-            if(message.length() > 1) {
-                message = message.substring(1, message.length());
-                recipient = text.substring(1, text.length() - message.length() - 1);
-            }
-            else return; // don't send if message was empty
-        } else {
-            // check if it is a command
-            if(text.toLowerCase().equals("/games") || text.toLowerCase().equals("/g")) { // get games list command
-                parent.getServer().log(Level.INFO, "Getting games list.");
-                parent.getServer().getGamesList();
+        CommandResult cmdResult = CommandParser.parse(
+            messageField.getText(),
+            parent.getServer());
+
+        switch (cmdResult.getCommandType()) {
+            case MESSAGE:
+            case GAMES:
+            case USERS:
+            case CHEAT:
                 emptyMessageField();
-                return;
-            } else if(text.toLowerCase().equals("/users") || text.toLowerCase().equals("/u")) { // get users list command
-                parent.getServer().log(Level.INFO, "Getting list of users online.");
-                parent.getServer().getUsersList();
-                emptyMessageField();
-                return;
-            } else if(text.toLowerCase().startsWith("/cheat ")) { // get begin cheating
-                parent.getServer().cheat(text.toLowerCase().substring(7));
-                emptyMessageField();
-                return;
-            } else {
-                message = text;
-                recipient = "all";
-            }
+                break;
+            case MESSAGE_ALL:
+                messageField.setText("@" + cmdResult.getRecipient() + " ");
+                autoFilledChatRecipient = true;
+                break;
         }
-        parent.getServer().chat(recipient.toLowerCase().trim(), message);
-        if(!recipient.equals("all")) {
-            messageField.setText("@"+recipient+" ");
-            autoFilledChatRecipient = true;
-        } else emptyMessageField();
     }
 
     /**

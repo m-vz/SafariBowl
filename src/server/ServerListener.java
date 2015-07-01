@@ -2,6 +2,7 @@ package server;
 
 import java.util.logging.Level;
 import server.Server;
+import network.SBNetworkException;
 
 /**
  * Defines the events a server shell needs to implement.
@@ -28,8 +29,10 @@ public interface ServerListener {
 
     /**
      * Called after a startup error.
+     *
+     * @param e The thrown exception.
      */
-    public void startException();
+    public void startException(SBNetworkException e);
 
     /**
      * Called after the server stopped successfuly.

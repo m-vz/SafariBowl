@@ -4,6 +4,7 @@ import java.util.logging.Level;
 import java.util.Scanner;
 import server.ServerListener;
 import server.Server;
+import network.SBNetworkException;
 
 public class LineShell implements ServerListener {
 

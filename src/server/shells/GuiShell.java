@@ -3,6 +3,8 @@ package server.shells;
 import server.ServerListener;
 import server.display.ServerFrame;
 import server.Server;
+import network.SBNetworkException;
+
 import java.util.logging.Level;
 
 public class GuiShell implements ServerListener {

@@ -231,7 +231,7 @@ public class Server extends SBApplication {
 			this.serverShell.started();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Exception while starting server on port " + port + ". " + e.toString());
-			this.serverShell.startException();
+			this.serverShell.startException(e);
         }
     }
 

@@ -28,7 +28,7 @@ public class GuiShell implements ServerListener {
         this.frame.getServerPanel().focusPortField();
     }
 
-    public void startException() {
+    public void startException(SBNetworkException e) {
         this.frame.getServerPanel().focusPortField();
     }
 

@@ -28,7 +28,7 @@ public class LineShell implements ServerListener {
         (new Thread(new LineReader())).start();
     }
 
-    public void startException() {
+    public void startException(SBNetworkException e) {
     }
 
     public void stopped() {

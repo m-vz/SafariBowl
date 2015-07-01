@@ -1,9 +1,12 @@
 package server.shells;
 
-import java.util.logging.Level;
-import java.util.Scanner;
 import server.ServerListener;
 import server.Server;
+import network.SBNetworkException;
+import util.CommandParser;
+
+import java.util.logging.Level;
+import java.util.Scanner;
 
 public class LineShell implements ServerListener {
 
@@ -28,7 +31,7 @@ public class LineShell implements ServerListener {
         (new Thread(new LineReader())).start();
     }
 
-    public void startException() {
+    public void startException(SBNetworkException e) {
     }
 
     public void stopped() {
@@ -58,48 +61,10 @@ public class LineShell implements ServerListener {
             //noinspection InfiniteLoopStatement
             while (true) {
                 System.out.print("sb> ");
-                String rawCmd = scanner.next();
+                String rawCmd = scanner.nextLine();
 
-                parseCmd(rawCmd);
+                CommandParser.parse(rawCmd, server);
             }
-        }
-
-        private void parseCmd(String rawCmd) {
-            String message, recipient;
-
-            if(rawCmd.startsWith("@")) {
-                // "@milan hello there!" -> message = "hello there!" recipient = "milan"
-                message = rawCmd.replaceAll("^@\\S+", "");
-                if(message.length() > 1) {
-                    message = message.substring(1, message.length());
-                    recipient = rawCmd.substring(1, rawCmd.length() - message.length() - 1);
-                }
-                else return; // don't send if message was empty
-            } else {
-                // check if it is a command
-                if(rawCmd.toLowerCase().equals("/games") || rawCmd.toLowerCase().equals("/g")) { // get games list command
-                    server.log(Level.INFO, "Getting games list.");
-                    server.getGamesList();
-
-                    return;
-                } else if(rawCmd.toLowerCase().equals("/users") || rawCmd.toLowerCase().equals("/u")) { // get users list command
-                    server.log(Level.INFO, "Getting list of users online.");
-                    server.getUsersList();
-
-                    return;
-                } else if(rawCmd.toLowerCase().equals("/exit") || rawCmd.toLowerCase().equals("/quit")) { // quit application
-                    System.exit(0);
-
-                    return;
-                } else if(rawCmd.toLowerCase().startsWith("/cheat ")) { // get begin cheating
-                    server.cheat(rawCmd.toLowerCase().substring(7));
-                    return;
-                } else {
-                    message = rawCmd;
-                    recipient = "all";
-                }
-            }
-            server.chat(recipient.toLowerCase().trim(), message);
         }
     }
 }

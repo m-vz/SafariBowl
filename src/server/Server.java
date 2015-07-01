@@ -231,7 +231,7 @@ public class Server extends SBApplication {
 			this.serverShell.started();
         } catch (SBNetworkException e) {
             log(Level.SEVERE, "Exception while starting server on port " + port + ". " + e.toString());
-			this.serverShell.startException();
+			this.serverShell.startException(e);
         }
     }
 
@@ -515,7 +515,7 @@ public class Server extends SBApplication {
                 return;
             }
             if(newRoundCount <= 0) {
-                log(Level.INFO, "If cheat, cheat right. Round count below zero.");
+                log(Level.INFO, "If cheat, cheat right. Round count below one.");
                 return;
             }
             match.setRoundCount(newRoundCount);

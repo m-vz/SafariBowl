@@ -1,6 +1,7 @@
 package client.logic;
 
 import client.display.GameCanvas;
+import client.sound.PlayerSound;
 import gameLogic.*;
 import gameLogic.rules.RuleThrow;
 import util.ResourceManager;
@@ -785,8 +786,10 @@ public class PitchMouseLogic {
                         && getGameCanvas().canSetUp()
                         && !getGameCanvas().hasSetUpTeam()) { // is hovering own player and can set up team
                     if((!getGameCanvas().getPlayersOnBench().contains(getHoveringPlayer()) || getGamePhase() == 1)
-                            && getHoveringPlayer() != null && !getHoveringPlayer().getRedCard())
+                            && getHoveringPlayer() != null && !getHoveringPlayer().getRedCard()) {
                         setMovingPlayer(getHoveringPlayer());
+                        PlayerSound.pickUp(getHoveringPlayer());
+                    }
                 }
 
             } else if(getGamePhase() >= 3) {
@@ -798,8 +801,10 @@ public class PitchMouseLogic {
                             if (e.getButton() == MouseEvent.BUTTON1 && !getGameCanvas().isShiftPressed()) { // left mouse button, move
                                 if(!getGameCanvas().getPlayersOnBench().contains(getHoveringPlayer()) || getGamePhase() == 1)
                                     if(!getGameCanvas().isChoosingSpecialRule())
-                                        if(getHoveringPlayer().invokeGetRemainingBe() > 0)
+                                        if(getHoveringPlayer().invokeGetRemainingBe() > 0) {
                                             setMovingPlayer(getHoveringPlayer());
+                                            PlayerSound.pickUp(getHoveringPlayer());
+                                        }
                                 addPathElement();
                             } else if (e.getButton() == MouseEvent.BUTTON3 || e.getButton() == MouseEvent.BUTTON2 || getGameCanvas().isShiftPressed()) { // right mouse button throw
                                 if (getHoveringPlayer().isHoldingBall()

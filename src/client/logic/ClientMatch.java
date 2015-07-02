@@ -608,26 +608,29 @@ public class ClientMatch extends GameController {
 			if(playerIndex < 0 || playerIndex >= teams[actingUserIndex].getPlayers().size() || playerPosX < -1 || playerPosX > 25 || playerPosY < -1 || playerPosY > 14){
 				return;
 			}
-			teams[actingUserIndex].getPlayers().get(playerIndex).setName(message.getParameterContent(3));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetBe(Integer.parseInt(message.getParameterContent(4)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetSt(Integer.parseInt(message.getParameterContent(5)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetGe(Integer.parseInt(message.getParameterContent(6)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetRs(Integer.parseInt(message.getParameterContent(7)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetRemainingBe(Integer.parseInt(message.getParameterContent(8)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetPlayerCondition(PlayerCondition.valueOf(message.getParameterContent(9)));
+			Player player = teams[actingUserIndex].getPlayers().get(playerIndex);
+			player.setName(message.getParameterContent(3));
+			player.invokeSetBe(Integer.parseInt(message.getParameterContent(4)));
+			player.invokeSetSt(Integer.parseInt(message.getParameterContent(5)));
+			player.invokeSetGe(Integer.parseInt(message.getParameterContent(6)));
+			player.invokeSetRs(Integer.parseInt(message.getParameterContent(7)));
+			player.invokeSetRemainingBe(Integer.parseInt(message.getParameterContent(8)));
+			PlayerCondition newCondition = PlayerCondition.valueOf(message.getParameterContent(9));
+			if(player.invokeGetPlayerCondition() != newCondition) // only set new condition if it changed to avoid playing sounds multiple times
+				player.invokeSetPlayerCondition(newCondition);
 			try{
 				if(playerPosX == -1 && playerPosY == -1){
-					teams[actingUserIndex].getPlayers().get(playerIndex).invokeClearPosition();
+					player.invokeClearPosition();
 				}else{
-					teams[actingUserIndex].getPlayers().get(playerIndex).getPosition().adjustPlayer(null);
-					teams[actingUserIndex].getPlayers().get(playerIndex).invokeAdjustPosition(getPitch().getFields()[playerPosX][playerPosY]);
+					player.getPosition().adjustPlayer(null);
+					player.invokeAdjustPosition(getPitch().getFields()[playerPosX][playerPosY]);
 				}
 			}catch(NullPointerException e){
 				getClient().logStackTrace(e);
 			}
-			teams[actingUserIndex].getPlayers().get(playerIndex).getPosition().adjustPlayer(teams[actingUserIndex].getPlayers().get(playerIndex));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetIsHoldingBall(Boolean.parseBoolean(message.getParameterContent(12)));
-			teams[actingUserIndex].getPlayers().get(playerIndex).invokeSetRedCard(Boolean.parseBoolean(message.getParameterContent(13)));
+			player.getPosition().adjustPlayer(player);
+			player.invokeSetIsHoldingBall(Boolean.parseBoolean(message.getParameterContent(12)));
+			player.invokeSetRedCard(Boolean.parseBoolean(message.getParameterContent(13)));
 		}catch(NumberFormatException e){
 			returnFailureMessage(message, SBProtocolMessage.FAILD_RECEIVED_WRONG_GAME_DATA);
 		}

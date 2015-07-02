@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Level;
 
+import javax.sound.sampled.Clip;
 import javax.vecmath.*;
 
+import client.sound.PlayerSound;
 import server.logic.User;
 import gameLogic.rules.*;
 
@@ -45,6 +47,20 @@ public class Player {
 	 */
 	private BufferedImage spriteR, spriteL;
 	/**
+	 * The sounds of this player:
+	 * <ul>
+	 *     <li><code><b>soundPickUp</b></code> – played when this player is picked up and dragged.</li>
+	 *     <li><code><b>soundProned</b></code> – played when this player is proned.</li>
+	 *     <li><code><b>soundStunned</b></code> – played when this player is stunned.</li>
+     *     <li><code><b>soundInjured</b></code> – played when this player is injured.</li>
+     *     <li><code><b>soundBlitz</b></code> – played when this player blitzes.</li>
+     *     <li><code><b>soundBlock</b></code> – played when this player blocks.</li>
+     *     <li><code><b>soundPass</b></code> – played when this player passes.</li>
+     *     <li><code><b>soundDied</b></code> – played when this player dies.</li>
+	 * </ul>
+	 */
+	private Clip soundPickUp, soundProned, soundStunned, soundInjured, soundKO, soundBlitz, soundBlock, soundPass, soundDied;
+	/**
 	 * A hash map for scripts to store data in. Is not used by standard players.
 	 */
 	private HashMap<String, String> specialStats = new HashMap<String, String>();
@@ -71,8 +87,22 @@ public class Player {
 	private Player(Player p, Team team) {
 		this.manager = p.manager;
 		setName(p.getName());
+
+        // images
 		setSpriteR(p.getSpriteR());
 		setSpriteL(p.getSpriteL());
+
+        // sounds
+        setSoundPickUp(p.getSoundPickUp());
+        setSoundProned(p.getSoundProned());
+        setSoundStunned(p.getSoundStunned());
+        setSoundInjured(p.getSoundInjured());
+        setSoundKO(p.getSoundKO());
+        setSoundBlitz(p.getSoundBlitz());
+        setSoundBlock(p.getSoundBlock());
+        setSoundPass(p.getSoundPass());
+        setSoundDied(p.getSoundDied());
+
 		invokeAdjustTeam(team);
 		invokeSetGe(DEFAULT_GE);
 		invokeSetRs(DEFAULT_RS);
@@ -222,6 +252,25 @@ public class Player {
 
 		Object playerConditionFromScript = manager.invokeFunction("setPlayerCondition", this, playerCondition);
 		if(playerConditionFromScript != null) this.playerCondition = (PlayerCondition) playerConditionFromScript;
+
+        switch(invokeGetPlayerCondition()) {
+            case PRONE:
+                if(playerCondition != PlayerCondition.STUNNED) // don't play sound if player was unstunned
+                    PlayerSound.proned(this);
+                break;
+            case STUNNED:
+                PlayerSound.stunned(this);
+                break;
+            case INJURED:
+                PlayerSound.injured(this);
+                break;
+            case KO:
+                PlayerSound.ko(this);
+                break;
+            case DEAD:
+                PlayerSound.died(this);
+                break;
+        }
 
 		if(isHoldingBall()){
 			if(invokeGetPlayerCondition() != PlayerCondition.FINE){
@@ -479,7 +528,27 @@ public class Player {
 		this.spriteL = spriteL;
 	}
 
-	public void setId() {
+    // SOUNDS
+    public Clip getSoundPickUp() { return soundPickUp; }
+    public void setSoundPickUp(Clip soundPickUp) { this.soundPickUp = soundPickUp; }
+    public Clip getSoundProned() { return soundProned; }
+    public void setSoundProned(Clip soundProned) { this.soundProned = soundProned; }
+    public Clip getSoundStunned() { return soundStunned; }
+    public void setSoundStunned(Clip soundStunned) { this.soundStunned = soundStunned; }
+    public Clip getSoundInjured() { return soundInjured; }
+    public void setSoundInjured(Clip soundInjured) { this.soundInjured = soundInjured; }
+    public Clip getSoundKO() { return soundKO; }
+    public void setSoundKO(Clip soundKO) { this.soundKO = soundKO; }
+    public Clip getSoundBlitz() { return soundBlitz; }
+    public void setSoundBlitz(Clip soundBlitz) { this.soundBlitz = soundBlitz; }
+    public Clip getSoundBlock() { return soundBlock; }
+    public void setSoundBlock(Clip soundBlock) { this.soundBlock = soundBlock; }
+    public Clip getSoundPass() { return soundPass; }
+    public void setSoundPass(Clip soundPass) { this.soundPass = soundPass; }
+    public Clip getSoundDied() { return soundDied; }
+    public void setSoundDied(Clip soundDied) { this.soundDied = soundDied; }
+
+    public void setId() {
 		this.id = getTeam().countUpIdCounter();
 	}
 

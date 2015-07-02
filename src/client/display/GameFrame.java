@@ -3,6 +3,7 @@ package client.display;
 import GUI.SBFrame;
 import client.Client;
 import client.logic.DrawingPath;
+import client.sound.PlayerSound;
 import gameLogic.Pitch;
 import gameLogic.PitchField;
 import gameLogic.Player;
@@ -292,6 +293,8 @@ public class GameFrame extends SBFrame {
                 if(destination.getPlayer() != null) {
                     SBProtocolParameterArray params;
                     if (path.getPath().size() > 1) { // is blitz
+                        PlayerSound.blitz(actor);
+
                         params = new SBProtocolParameterArray(SBProtocolMessage.ACTIO_MOVE, (actor.getId() - 1) + "");
                         for (PitchField field : path.getPath()) {
                             params.addParameter(new SBProtocolParameter((int) field.getPos().x + ""));
@@ -300,6 +303,8 @@ public class GameFrame extends SBFrame {
                         params.addParameter(new SBProtocolParameter((int) destination.getPos().x + ""));
                         params.addParameter(new SBProtocolParameter((int) destination.getPos().y + ""));
                     } else { // is block
+                        PlayerSound.block(actor);
+
                         params = new SBProtocolParameterArray(SBProtocolMessage.ACTIO_BLCK, (actor.getId() - 1) + "");
                         params.addParameter(new SBProtocolParameter((destination.getPlayer().getId() - 1) + ""));
                     }
@@ -315,6 +320,8 @@ public class GameFrame extends SBFrame {
     public void throwBall(PitchField throwDestination, Player thrower) {
         if(throwDestination != null && thrower != null) {
             try {
+                PlayerSound.pass(thrower);
+
                 SBProtocolParameterArray params = new SBProtocolParameterArray(
                         "THRW",
                         (thrower.getId() - 1) + "",

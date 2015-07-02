@@ -1,5 +1,6 @@
 package gameLogic;
 
+import client.sound.PlayerSound;
 import server.Server;
 import util.ResourceManager;
 import util.SBApplication;
@@ -9,6 +10,10 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -99,6 +104,7 @@ public class TeamManager {
         try {
 
             HashMap<String, BufferedImage> teamImages = new HashMap<String, BufferedImage>();
+            HashMap<String, Clip> teamSounds = new HashMap<String, Clip>();
 
             // handle team files
             if(teamsDir != null) {
@@ -125,11 +131,24 @@ public class TeamManager {
                             } else if (filename.toLowerCase().endsWith(".png")) { // is image
 
                                 try {
+
                                     String imageName = filename.substring(0, filename.length() - ".png".length());
                                     teamImages.put(imageName, ImageIO.read(teamFile));
-                                } catch (IOException e) {
-                                    getParent().log(Level.WARNING, "IOException while reading team image " + teamFile.getName() + ".");
-                                }
+
+                                } catch (IOException e) { getParent().log(Level.WARNING, "IOException while reading team image " + teamFile.getName() + "."); }
+
+                            } else if (filename.toLowerCase().endsWith(".wav")) { // is sound
+
+                                try {
+
+                                    String soundName = filename.substring(0, filename.length() - ".wav".length());
+                                    Clip clip = AudioSystem.getClip();
+                                    clip.open(AudioSystem.getAudioInputStream(teamFile));
+                                    teamSounds.put(soundName, clip);
+
+                                } catch(LineUnavailableException e) { getParent().logStackTrace(e);
+                                } catch(UnsupportedAudioFileException e) { getParent().log(Level.WARNING, "Unsupported Audio File " + teamFile.getName() + ".");
+                                } catch(IOException e) { getParent().log(Level.WARNING, "IOException while reading team sound " + teamFile.getName() + "."); }
 
                             }
                         }
@@ -138,7 +157,7 @@ public class TeamManager {
                     }
                 }
 
-                // handle player images
+                // handle player images and sounds
                 int w = ResourceManager.IMAGE_WIDTH, h = ResourceManager.IMAGE_HEIGHT;
                 for (Team team : teamBlueprints) {
                     for (Player player : team.availablePlayers) {
@@ -156,6 +175,17 @@ public class TeamManager {
                             if (imageL.getWidth() != w || imageL.getHeight() != h) imageL = resize(imageL, w, h);
                             player.setSpriteL(imageL);
                         } else player.setSpriteL(ResourceManager.IMAGE_DEFAULT_PLAYER_L);
+
+                        // get sounds
+                        player.setSoundPickUp(teamSounds.get(player.getName() + " Pick Up"));
+                        player.setSoundProned(teamSounds.get(player.getName() + " Proned"));
+                        player.setSoundStunned(teamSounds.get(player.getName() + " Stunned"));
+                        player.setSoundInjured(teamSounds.get(player.getName() + " Injured"));
+                        player.setSoundKO(teamSounds.get(player.getName() + " KO"));
+                        player.setSoundBlitz(teamSounds.get(player.getName() + " Blitz"));
+                        player.setSoundBlock(teamSounds.get(player.getName() + " Block"));
+                        player.setSoundPass(teamSounds.get(player.getName() + " Pass"));
+                        player.setSoundDied(teamSounds.get(player.getName() + " Died"));
 
                     }
                 }

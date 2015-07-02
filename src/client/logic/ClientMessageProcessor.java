@@ -1,10 +1,12 @@
 package client.logic;
 
 import client.display.ClientFrame;
-import gameLogic.GameController;
+import client.sound.SoundManager;
 import network.*;
 import client.Client;
 import util.MessageProcessor;
+import util.ResourceManager;
+import util.SBApplication;
 
 import java.util.UUID;
 import java.util.logging.Level;
@@ -95,11 +97,14 @@ public class ClientMessageProcessor implements MessageProcessor {
         switch (message.getCommand()) {
             case SENDM:
                 getFrame().addChatMessage(message.getParameterContent(0), message.getParameterContent(1));
+                SoundManager.play(ResourceManager.SOUND_SNAP);
                 return true;
 
             case BDCST:
                 if(!message.getParameterContent(0).toLowerCase().equals(getUsername().toLowerCase())) // if was not sent by this client
                     getFrame().addChatMessage(message.getParameterContent(0)+"@all", message.getParameterContent(1));
+                if(!message.getParameterContent(0).equals(SBApplication.MODERATOR_NAME)) // don't snap if MODERATOR_NAME wants your attention: you need always be ready for their highness!
+                    SoundManager.play(ResourceManager.SOUND_SNAP);
                 return true;
 
             default:

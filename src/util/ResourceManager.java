@@ -1,10 +1,7 @@
 package util;
 
 import javax.imageio.ImageIO;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.zip.ZipEntry;
@@ -57,7 +54,7 @@ public class ResourceManager {
 
     public static final String SOUNDS_CHAT_PATH = SOUNDS_PATH + "chat/";
 
-    public static AudioInputStream SOUND_SNAP;
+    public static Clip SOUND_SNAP;
 
     static {
 
@@ -100,10 +97,14 @@ public class ResourceManager {
 
         try {
 
-            SOUND_SNAP = AudioSystem.getAudioInputStream(ResourceManager.class.getResource(SOUNDS_CHAT_PATH + "snap.wav"));
+            // CHAT
+
+            SOUND_SNAP = AudioSystem.getClip();
+            SOUND_SNAP.open(AudioSystem.getAudioInputStream(ResourceManager.class.getResource(SOUNDS_CHAT_PATH + "snap.wav")));
 
         } catch(UnsupportedAudioFileException e) { e.printStackTrace();
-        } catch(IOException e) { e.printStackTrace(); }
+        } catch(IOException e) { e.printStackTrace();
+        } catch(LineUnavailableException e) { e.printStackTrace(); }
 
     }
 

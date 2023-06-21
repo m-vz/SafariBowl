@@ -1,4 +1,4 @@
-![SafariBowl](https://milanovi.ch/safaribowl/wiki/images/1/1c/LogoNew.png)
+![SafariBowl-Logo-gross](https://github.com/milanvanzanten/SafariBowl/assets/4547497/79540f21-8628-49df-b092-74288c56c949)
 
 **Animals play american football.**
 
